@@ -1,3 +1,17 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
+
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+const messaging = getMessaging(app);
+
 const addBtn = document.getElementById("addBtn");
 const foodList = document.getElementById("foodList");
 
@@ -5,6 +19,31 @@ let foods = JSON.parse(localStorage.getItem("foods")) || [];
 let currentFilter = "all";
 
 renderFoods();
+
+/* 🔥 通知許可 & トークン取得 */
+async function initFCM() {
+
+  if (!("Notification" in window)) return;
+
+  const permission = await Notification.requestPermission();
+
+  if (permission !== "granted") return;
+
+  const token = await getToken(messaging, {
+    vapidKey: "BElx1pR9ADM3q3tcDJVkjTk-d9Ju4XvipY-UO8u4fpcITOycJdDSFphYUfzri_4m9DM4CHBG53Gx03aO1sJ-0k8"
+  });
+
+  console.log("FCM TOKEN:", token);
+}
+
+initFCM();
+
+/* フォアグラウンド通知 */
+onMessage(messaging, (payload) => {
+  new Notification(payload.notification.title, {
+    body: payload.notification.body
+  });
+});
 
 /* 追加 */
 addBtn.onclick = () => {
@@ -25,8 +64,7 @@ addBtn.onclick = () => {
     amount,
     unit,
     deadline,
-    completed: false,
-    notified: { day3:false, day1:false, today:false }
+    completed: false
   });
 
   save();
@@ -57,14 +95,9 @@ function getStatus(days) {
 }
 
 /* フィルター */
-function setFilter(type) {
+window.setFilter = function(type) {
   currentFilter = type;
   renderFoods();
-
-  document.querySelectorAll(".filter-area button")
-    .forEach(b => b.classList.remove("active"));
-
-  event.target.classList.add("active");
 }
 
 /* 描画 */
@@ -101,7 +134,7 @@ function renderFoods() {
         使用済み
       </label>
 
-      <button class="delete-btn" onclick="del(${food.id})">削除</button>
+      <button onclick="del(${food.id})">削除</button>
     `;
 
     foodList.appendChild(card);
@@ -109,14 +142,14 @@ function renderFoods() {
 }
 
 /* 削除 */
-function del(id) {
+window.del = function(id) {
   foods = foods.filter(f => f.id !== id);
   save();
   renderFoods();
 }
 
 /* 使用済み */
-function toggle(id) {
+window.toggle = function(id) {
   foods = foods.map(f =>
     f.id === id ? {...f, completed: !f.completed} : f
   );
