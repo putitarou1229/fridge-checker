@@ -1,54 +1,56 @@
 <!DOCTYPE html>
 <html lang="ja">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>冷蔵庫チェッカー</title>
-    <link rel="stylesheet" href="style.css" />
-    <link rel="icon" href="icon.png">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>冷蔵庫チェッカー</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
 
+<!-- 🔥 タイトル画面 -->
+<div id="homeScreen" class="home">
+  <h1>🥬 冷蔵庫チェッカー</h1>
+  <p>賞味期限を自動で管理</p>
+  <button onclick="startApp()">開始</button>
+</div>
+
 <header>
-    <h1>🥬 冷蔵庫チェッカー</h1>
+  <h1>🥬 冷蔵庫チェッカー</h1>
 </header>
 
 <main>
 
-    <!-- フィルター -->
-    <div class="filter-area">
-        <button onclick="setFilter('all')">すべて</button>
-        <button onclick="setFilter('warning')">期限近い</button>
-        <button onclick="setFilter('completed')">使用済み</button>
-    </div>
+  <!-- フィルター -->
+  <div class="filter-area">
+    <button onclick="setFilter('all')">すべて</button>
+    <button onclick="setFilter('warning')">期限近い</button>
+    <button onclick="setFilter('completed')">使用済み</button>
+  </div>
 
-    <!-- 入力 -->
-    <div class="form-area">
+  <!-- 入力 -->
+  <div class="form-area">
+    <input type="text" id="name" placeholder="食材名">
+    <input type="number" id="amount" placeholder="数量">
 
-        <input type="text" id="name" placeholder="食材名">
-        <input type="number" id="amount" placeholder="数量">
+    <select id="unit">
+      <option value="個">個</option>
+      <option value="本">本</option>
+      <option value="g">g</option>
+      <option value="ml">ml</option>
+    </select>
 
-        <select id="unit">
-            <option value="個">個</option>
-            <option value="本">本</option>
-            <option value="g">g</option>
-            <option value="ml">ml</option>
-        </select>
+    <label for="deadline">消費期限</label>
+    <input type="date" id="deadline">
 
-        <label for="deadline">消費期限</label>
-        <input type="date" id="deadline">
+    <button id="addBtn">追加</button>
+  </div>
 
-        <button id="addBtn">追加</button>
-
-    </div>
-
-    <div id="foodList"></div>
+  <div id="foodList"></div>
 
 </main>
 
-<!-- 🔥 ここが超重要修正 -->
 <script type="module" src="app.js"></script>
 
 </body>
