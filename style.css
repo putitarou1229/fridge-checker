@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 body {
   margin: 0;
   font-family: sans-serif;
@@ -75,4 +76,83 @@ button {
 .completed {
   opacity: 0.5;
   text-decoration: line-through;
+=======
+body {
+  margin: 0;
+  font-family: sans-serif;
+  background: #f4f4f4;
+}
+
+header {
+  background: #4caf50;
+  color: white;
+  padding: 15px;
+  text-align: center;
+}
+
+main {
+  padding: 20px;
+}
+
+.form-area {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+input,
+select,
+button {
+  padding: 12px;
+  font-size: 16px;
+}
+
+button {
+  background: #4caf50;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.food-card {
+  background: white;
+  padding: 15px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.safe {
+  border-left: 8px solid green;
+}
+
+.warning {
+  border-left: 8px solid orange;
+}
+
+.danger {
+  border-left: 8px solid red;
+}
+
+.food-card h3 {
+  margin: 0 0 10px;
+}
+
+.food-card p {
+  margin: 5px 0;
+}
+
+.delete-btn {
+  margin-top: 10px;
+  background: crimson;
+  color: white;
+  border: none;
+  padding: 8px;
+}
+
+.completed {
+  opacity: 0.5;
+  text-decoration: line-through;
+>>>>>>> de801e4b1a96acfe16c18893342af83fb3ea2a04
 }
