@@ -16,13 +16,14 @@
 
 <main>
 
-    <!-- フィルター追加 -->
+    <!-- フィルター -->
     <div class="filter-area">
         <button onclick="setFilter('all')">すべて</button>
         <button onclick="setFilter('warning')">期限近い</button>
         <button onclick="setFilter('completed')">使用済み</button>
     </div>
 
+    <!-- 入力 -->
     <div class="form-area">
 
         <input type="text" id="name" placeholder="食材名">
@@ -46,6 +47,8 @@
 
 </main>
 
-<script src="app.js"></script>
+<!-- 🔥 ここが超重要修正 -->
+<script type="module" src="app.js"></script>
+
 </body>
 </html>
