@@ -3,54 +3,72 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>冷蔵庫チェッカー</title>
+  <title>Fridge SaaS</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
 
-<header>
-  <h1>🥬 冷蔵庫チェッカー</h1>
+<header class="topbar">
+  <h1>🥬 Fridge SaaS</h1>
+  <span id="plan">Free</span>
 </header>
 
-<main>
+<!-- TAB NAV -->
+<nav class="tabs">
+  <button class="tab active" onclick="switchTab('dashboard')">Dashboard</button>
+  <button class="tab" onclick="switchTab('foods')">Foods</button>
+  <button class="tab" onclick="switchTab('analytics')">Analytics</button>
+  <button class="tab" onclick="switchTab('recipes')">Recipes</button>
+  <button class="tab" onclick="switchTab('scan')">Scan</button>
+</nav>
 
-  <!-- 状態サマリー -->
-  <div class="summary-box">
-    <div>🔥 危険: <span id="dangerCount">0</span></div>
-    <div>⚠️ 注意: <span id="warningCount">0</span></div>
-    <div>🟢 安全: <span id="safeCount">0</span></div>
-  </div>
+<main class="container">
 
-  <!-- フィルター -->
-  <div class="filter-area">
-    <button onclick="setFilter('all')">すべて</button>
-    <button onclick="setFilter('warning')">期限近い</button>
-    <button onclick="setFilter('completed')">使用済み</button>
-  </div>
+  <!-- DASHBOARD -->
+  <section id="dashboard" class="panel active">
+    <div class="kpi">
+      💀 <span id="dangerCount">0</span>
+      ⚠️ <span id="warningCount">0</span>
+      🟢 <span id="safeCount">0</span>
+    </div>
+  </section>
 
-  <!-- 入力 -->
-  <div class="form-area">
-    <input type="text" id="name" placeholder="食材名">
-    <input type="number" id="amount" placeholder="数量">
+  <!-- FOODS -->
+  <section id="foods" class="panel">
+    <div class="form">
+      <input id="name" placeholder="食材名">
+      <input id="amount" type="number" placeholder="数量">
+      <input id="deadline" type="date">
+      <button id="addBtn">追加</button>
+    </div>
 
-    <select id="unit">
-      <option value="個">個</option>
-      <option value="本">本</option>
-      <option value="g">g</option>
-      <option value="ml">ml</option>
-    </select>
+    <div id="foodList"></div>
+  </section>
 
-    <label for="deadline">消費期限</label>
-    <input type="date" id="deadline">
-    <button id="addBtn">追加</button>
-  </div>
+  <!-- ANALYTICS -->
+  <section id="analytics" class="panel">
+    <h3>📊 フードロス分析</h3>
+    <div id="chartArea"></div>
+  </section>
 
-  <div id="foodList"></div>
+  <!-- RECIPES -->
+  <section id="recipes" class="panel">
+    <h3>🍳 AIレシピ</h3>
+    <textarea id="ingredients" placeholder="食材を入力"></textarea>
+    <button onclick="getRecipe()">生成</button>
+    <div id="recipeResult"></div>
+  </section>
+
+  <!-- SCAN -->
+  <section id="scan" class="panel">
+    <h3>📷 レシートスキャン</h3>
+    <input type="file" />
+    <p>※OCR連携予定</p>
+  </section>
 
 </main>
 
 <script type="module" src="app.js"></script>
-
 </body>
 </html>

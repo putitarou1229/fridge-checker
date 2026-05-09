@@ -1,90 +1,61 @@
 body {
   margin: 0;
-  font-family: "Segoe UI", sans-serif;
-  background: #f4f6f8;
-  color: #333;
+  font-family: sans-serif;
+  background: #f5f7fb;
 }
 
-/* ヘッダー */
-header {
-  background: #4caf50;
+/* TOP */
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px;
+  background: #111827;
   color: white;
-  padding: 14px;
-  text-align: center;
 }
 
-/* サマリー */
-.summary-box {
+/* TAB */
+.tabs {
   display: flex;
-  justify-content: space-around;
-  background: white;
-  margin: 10px;
+  gap: 6px;
   padding: 10px;
-  border-radius: 12px;
-  font-weight: bold;
+  background: white;
 }
 
-/* フィルター */
-.filter-area {
-  display: flex;
-  gap: 8px;
-  margin: 10px;
-}
-
-.filter-area button {
+.tab {
   flex: 1;
   padding: 10px;
-  border-radius: 10px;
-  border: 1px solid #ddd;
-  background: white;
-  color: #333;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.filter-area button.active {
-  background: #4caf50;
-  color: white;
-}
-
-/* フォーム */
-.form-area {
-  display: grid;
-  gap: 10px;
-  padding: 10px;
-}
-
-input, select {
-  padding: 12px;
-  border-radius: 10px;
-  border: 1px solid #ddd;
-}
-
-/* ボタン */
-button {
-  padding: 12px;
   border: none;
-  border-radius: 10px;
-  background: #4caf50;
+  background: #eee;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.tab.active {
+  background: #111827;
   color: white;
 }
 
-/* カード */
+/* PANEL */
+.panel {
+  display: none;
+  padding: 15px;
+}
+
+.panel.active {
+  display: block;
+}
+
+/* KPI */
+.kpi {
+  display: flex;
+  gap: 20px;
+  font-size: 20px;
+}
+
+/* FOOD CARD */
 .food-card {
   background: white;
-  margin: 10px;
-  padding: 14px;
-  border-radius: 14px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-}
-
-/* 状態 */
-.safe { border-left: 6px solid #4caf50; }
-.warning { border-left: 6px solid #ff9800; }
-.danger { border-left: 6px solid #f44336; }
-
-/* 使用済み */
-.completed {
-  opacity: 0.5;
-  filter: grayscale(1);
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 10px;
 }
