@@ -2,19 +2,11 @@ const addBtn = document.getElementById("addBtn");
 const foodList = document.getElementById("foodList");
 
 let foods = JSON.parse(localStorage.getItem("foods")) || [];
+let currentFilter = "all";
 
 renderFoods();
 
-// SW登録（PWA）
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("./sw.js");
-}
-
-// 通知許可
-if (Notification.permission !== "granted") {
-  Notification.requestPermission();
-}
-
+/* 追加 */
 addBtn.onclick = () => {
 
   const name = document.getElementById("name").value;
@@ -23,7 +15,7 @@ addBtn.onclick = () => {
   const deadline = document.getElementById("deadline").value;
 
   if (!name || !amount || !deadline) {
-    alert("すべて入力してください");
+    alert("入力してください");
     return;
   }
 
@@ -34,92 +26,64 @@ addBtn.onclick = () => {
     unit,
     deadline,
     completed: false,
-    notified: {
-      day3: false,
-      day1: false,
-      today: false
-    }
+    notified: { day3:false, day1:false, today:false }
   });
 
-  saveFoods();
+  save();
   renderFoods();
-
-  document.getElementById("name").value = "";
-  document.getElementById("amount").value = "";
-  document.getElementById("deadline").value = "";
 };
 
-function saveFoods() {
+/* 保存 */
+function save() {
   localStorage.setItem("foods", JSON.stringify(foods));
 }
 
+/* 日数 */
 function getDaysLeft(deadline) {
   const now = new Date();
   const target = new Date(deadline);
+
+  now.setHours(0,0,0,0);
+  target.setHours(0,0,0,0);
+
   return Math.ceil((target - now) / (1000 * 60 * 60 * 24));
 }
 
+/* 状態 */
 function getStatus(days) {
   if (days < 0) return "danger";
   if (days <= 3) return "warning";
   return "safe";
 }
 
-function sendNotification(title, body) {
-  if (Notification.permission === "granted") {
-    new Notification(title, { body });
-  }
+/* フィルター */
+function setFilter(type) {
+  currentFilter = type;
+  renderFoods();
+
+  document.querySelectorAll(".filter-area button")
+    .forEach(b => b.classList.remove("active"));
+
+  event.target.classList.add("active");
 }
 
-// 朝9時だけ実行（無料PWA方式）
-function isMorning() {
-  return new Date().getHours() === 9;
-}
-
-function runMorningCheck() {
-
-  if (!isMorning()) return;
-
-  foods.forEach(food => {
-
-    const days = getDaysLeft(food.deadline);
-
-    if (days === 3 && !food.notified.day3) {
-      sendNotification("冷蔵庫チェッカー", `${food.name}：3日後`);
-      food.notified.day3 = true;
-    }
-
-    if (days === 1 && !food.notified.day1) {
-      sendNotification("冷蔵庫チェッカー", `${food.name}：明日`);
-      food.notified.day1 = true;
-    }
-
-    if (days === 0 && !food.notified.today) {
-      sendNotification("冷蔵庫チェッカー", `${food.name}：今日`);
-      food.notified.today = true;
-    }
-  });
-
-  saveFoods();
-}
-
+/* 描画 */
 function renderFoods() {
 
   foodList.innerHTML = "";
 
-  foods.sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
+  foods.sort((a,b) => new Date(a.deadline) - new Date(b.deadline));
 
   foods.forEach(food => {
 
     const days = getDaysLeft(food.deadline);
+    const status = getStatus(days);
+
+    if (currentFilter === "warning" && status === "safe") return;
+    if (currentFilter === "completed" && !food.completed) return;
 
     const card = document.createElement("div");
-
-    card.className = `
-      food-card
-      ${getStatus(days)}
-      ${food.completed ? "completed" : ""}
-    `;
+    card.className = `food-card ${status} ${food.completed ? "completed" : ""}`;
 
     let text =
       days < 0 ? "期限切れ" :
@@ -129,39 +93,34 @@ function renderFoods() {
     card.innerHTML = `
       <h3>${food.name}</h3>
       <p>${food.amount}${food.unit}</p>
-      <p>${text}</p>
+      <p><b>${text}</b></p>
       <p>${food.deadline}</p>
 
       <label>
-        <input type="checkbox"
-          onchange="toggleComplete(${food.id})"
-          ${food.completed ? "checked" : ""}
-        >
+        <input type="checkbox" onchange="toggle(${food.id})" ${food.completed ? "checked" : ""}>
         使用済み
       </label>
 
-      <button class="delete-btn" onclick="deleteFood(${food.id})">
-        削除
-      </button>
+      <button class="delete-btn" onclick="del(${food.id})">削除</button>
     `;
 
     foodList.appendChild(card);
   });
-
-  runMorningCheck();
 }
 
-function deleteFood(id) {
+/* 削除 */
+function del(id) {
   foods = foods.filter(f => f.id !== id);
-  saveFoods();
+  save();
   renderFoods();
 }
 
-function toggleComplete(id) {
+/* 使用済み */
+function toggle(id) {
   foods = foods.map(f =>
-    f.id === id ? { ...f, completed: !f.completed } : f
+    f.id === id ? {...f, completed: !f.completed} : f
   );
 
-  saveFoods();
+  save();
   renderFoods();
 }

@@ -10,37 +10,42 @@
 
 <body>
 
-    <header>
-        <h1>🥬 冷蔵庫チェッカー</h1>
-    </header>
+<header>
+    <h1>🥬 冷蔵庫チェッカー</h1>
+</header>
 
-    <main>
+<main>
 
-        <div class="form-area">
+    <!-- フィルター追加 -->
+    <div class="filter-area">
+        <button onclick="setFilter('all')">すべて</button>
+        <button onclick="setFilter('warning')">期限近い</button>
+        <button onclick="setFilter('completed')">使用済み</button>
+    </div>
 
-            <input type="text" id="name" placeholder="食材名">
+    <div class="form-area">
 
-            <input type="number" id="amount" placeholder="数量">
+        <input type="text" id="name" placeholder="食材名">
+        <input type="number" id="amount" placeholder="数量">
 
-            <select id="unit">
-                <option value="個">個</option>
-                <option value="本">本</option>
-                <option value="g">g</option>
-                <option value="ml">ml</option>
-            </select>
-            
-            <label for="deadline">消費期限</label>
-            <input type="date" id="deadline">
+        <select id="unit">
+            <option value="個">個</option>
+            <option value="本">本</option>
+            <option value="g">g</option>
+            <option value="ml">ml</option>
+        </select>
 
-            <button id="addBtn">追加</button>
+        <label for="deadline">消費期限</label>
+        <input type="date" id="deadline">
 
-        </div>
+        <button id="addBtn">追加</button>
 
-        <div id="foodList"></div>
+    </div>
 
-    </main>
+    <div id="foodList"></div>
 
-    <script src="app.js"></script>
+</main>
+
+<script src="app.js"></script>
 </body>
-
 </html>
