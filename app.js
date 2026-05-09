@@ -1,13 +1,14 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
 
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
-};
+ const firebaseConfig = {
+    apiKey: "AIzaSyB-RHabxjy1Zb5TOsBZfKLtBffq4Aa4Yn4",
+    authDomain: "fridge-checker-fd18e.firebaseapp.com",
+    projectId: "fridge-checker-fd18e",
+    storageBucket: "fridge-checker-fd18e.firebasestorage.app",
+    messagingSenderId: "285614759556",
+    appId: "1:285614759556:web:6c41d639bf9f1d80526cd1"
+  };
 
 const app = initializeApp(firebaseConfig);
 const messaging = getMessaging(app);
