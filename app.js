@@ -20,20 +20,30 @@ const foodList = document.getElementById("foodList");
 
 let foods = JSON.parse(localStorage.getItem("foods")) || [];
 let currentFilter = "all";
+let swRegistration = null;
 
-let swRegistration;
+/* ================= Service Worker ================= */
+async function registerSW() {
+  try {
+    swRegistration = await navigator.serviceWorker.register(
+      "/fridge-checker/firebase-messaging-sw.js"
+    );
+    console.log("SW OK");
+  } catch (e) {
+    console.error("SW Error", e);
+  }
+}
+registerSW();
 
-/* ================= SW ================= */
-navigator.serviceWorker.register("/fridge-checker/firebase-messaging-sw.js")
-  .then(reg => {
-    swRegistration = reg;
-  });
-
-/* ================= Firebase Init ================= */
+/* ================= FCM ================= */
 async function initFCM() {
+
+  if (!("Notification" in window)) return;
 
   const permission = await Notification.requestPermission();
   if (permission !== "granted") return;
+
+  if (!swRegistration) return;
 
   const token = await getToken(messaging, {
     vapidKey: "BElx1pR9ADM3q3tcDJVkjTk-d9Ju4XvipY-UO8u4fpcITOycJdDSFphYUfzri_4m9DM4CHBG53Gx03aO1sJ-0k8",
@@ -43,19 +53,14 @@ async function initFCM() {
   console.log("FCM TOKEN:", token);
 }
 
-initFCM();
+setTimeout(initFCM, 1000);
 
-/* フォアグラウンド通知 */
+/* ================= フォアグラウンド通知 ================= */
 onMessage(messaging, (payload) => {
   new Notification(payload.notification.title, {
     body: payload.notification.body
   });
 });
-
-/* ================= タイトル画面 ================= */
-window.startApp = function () {
-  document.getElementById("homeScreen").style.display = "none";
-};
 
 /* ================= 追加 ================= */
 addBtn.onclick = () => {
@@ -74,7 +79,11 @@ addBtn.onclick = () => {
     unit,
     deadline,
     completed: false,
-    notified: { day3:false, day1:false, today:false }
+    notified: {
+      day3: false,
+      day1: false,
+      today: false
+    }
   });
 
   save();
@@ -106,7 +115,7 @@ function getRank(days) {
   return "🟢 余裕";
 }
 
-/* ================= 通知 ================= */
+/* ================= 通知（安定版） ================= */
 function runAutoNotification() {
 
   foods.forEach(food => {
@@ -118,22 +127,29 @@ function runAutoNotification() {
     }
 
     if (days === 3 && !food.notified.day3) {
-      new Notification("🥬 3日前", { body: food.name });
+      notify("🥬 3日前", food.name);
       food.notified.day3 = true;
     }
 
     if (days === 1 && !food.notified.day1) {
-      new Notification("⚠️ 明日期限", { body: food.name });
+      notify("⚠️ 明日期限", food.name);
       food.notified.day1 = true;
     }
 
     if (days === 0 && !food.notified.today) {
-      new Notification("🚨 今日期限", { body: food.name });
+      notify("🚨 今日期限", food.name);
       food.notified.today = true;
     }
   });
 
   save();
+}
+
+/* ================= 通知関数 ================= */
+function notify(title, body) {
+  if (Notification.permission === "granted") {
+    new Notification(title, { body });
+  }
 }
 
 /* ================= フィルター ================= */
