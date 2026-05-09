@@ -12,14 +12,13 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-/* 🔥 バックグラウンド通知 */
 messaging.onBackgroundMessage((payload) => {
 
-  self.registration.showNotification(
-    payload.notification.title,
-    {
-      body: payload.notification.body,
-      icon: "/icon.png" // 任意
-    }
-  );
+    const title = payload?.notification?.title || "冷蔵庫チェッカー";
+    const body = payload?.notification?.body || "期限チェック";
+
+    self.registration.showNotification(title, {
+        body,
+        icon: "/icon.png"
+    });
 });

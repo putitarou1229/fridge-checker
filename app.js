@@ -20,6 +20,9 @@ let currentFilter = "all";
 
 renderFoods();
 
+/* 🔥 Service Worker登録（超重要） */
+navigator.serviceWorker.register("./firebase-messaging-sw.js");
+
 /* 🔥 通知許可 & トークン取得 */
 async function initFCM() {
 
@@ -81,8 +84,8 @@ function getDaysLeft(deadline) {
   const now = new Date();
   const target = new Date(deadline);
 
-  now.setHours(0,0,0,0);
-  target.setHours(0,0,0,0);
+  now.setHours(0, 0, 0, 0);
+  target.setHours(0, 0, 0, 0);
 
   return Math.ceil((target - now) / (1000 * 60 * 60 * 24));
 }
@@ -95,7 +98,7 @@ function getStatus(days) {
 }
 
 /* フィルター */
-window.setFilter = function(type) {
+window.setFilter = function (type) {
   currentFilter = type;
   renderFoods();
 }
@@ -105,7 +108,7 @@ function renderFoods() {
 
   foodList.innerHTML = "";
 
-  foods.sort((a,b) => new Date(a.deadline) - new Date(b.deadline));
+  foods.sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
 
   foods.forEach(food => {
 
@@ -120,8 +123,8 @@ function renderFoods() {
 
     let text =
       days < 0 ? "期限切れ" :
-      days === 0 ? "今日まで" :
-      `残り${days}日`;
+        days === 0 ? "今日まで" :
+          `残り${days}日`;
 
     card.innerHTML = `
       <h3>${food.name}</h3>
@@ -142,16 +145,16 @@ function renderFoods() {
 }
 
 /* 削除 */
-window.del = function(id) {
+window.del = function (id) {
   foods = foods.filter(f => f.id !== id);
   save();
   renderFoods();
 }
 
 /* 使用済み */
-window.toggle = function(id) {
+window.toggle = function (id) {
   foods = foods.map(f =>
-    f.id === id ? {...f, completed: !f.completed} : f
+    f.id === id ? { ...f, completed: !f.completed } : f
   );
 
   save();
