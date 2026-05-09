@@ -1,14 +1,14 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
 
- const firebaseConfig = {
-    apiKey: "AIzaSyB-RHabxjy1Zb5TOsBZfKLtBffq4Aa4Yn4",
-    authDomain: "fridge-checker-fd18e.firebaseapp.com",
-    projectId: "fridge-checker-fd18e",
-    storageBucket: "fridge-checker-fd18e.firebasestorage.app",
-    messagingSenderId: "285614759556",
-    appId: "1:285614759556:web:6c41d639bf9f1d80526cd1"
-  };
+const firebaseConfig = {
+  apiKey: "AIzaSyB-RHabxjy1Zb5TOsBZfKLtBffq4Aa4Yn4",
+  authDomain: "fridge-checker-fd18e.firebaseapp.com",
+  projectId: "fridge-checker-fd18e",
+  storageBucket: "fridge-checker-fd18e.firebasestorage.app",
+  messagingSenderId: "285614759556",
+  appId: "1:285614759556:web:6c41d639bf9f1d80526cd1"
+};
 
 const app = initializeApp(firebaseConfig);
 const messaging = getMessaging(app);
@@ -32,8 +32,13 @@ async function initFCM() {
 
   if (permission !== "granted") return;
 
+  const swReg = await navigator.serviceWorker.register(
+    "/fridge-checker/firebase-messaging-sw.js"
+  );
+
   const token = await getToken(messaging, {
-    vapidKey: "BElx1pR9ADM3q3tcDJVkjTk-d9Ju4XvipY-UO8u4fpcITOycJdDSFphYUfzri_4m9DM4CHBG53Gx03aO1sJ-0k8"
+    vapidKey: "BElx1pR9ADM3q3tcDJVkjTk-d9Ju4XvipY-UO8u4fpcITOycJdDSFphYUfzri_4m9DM4CHBG53Gx03aO1sJ-0k8",
+    serviceWorkerRegistration: swReg
   });
 
   console.log("FCM TOKEN:", token);
