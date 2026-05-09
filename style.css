@@ -7,25 +7,28 @@ body {
 
 /* ヘッダー */
 header {
-  background: linear-gradient(135deg, #4caf50, #43a047);
+  background: #4caf50;
   color: white;
-  padding: 16px;
+  padding: 14px;
   text-align: center;
-  font-weight: bold;
 }
 
-/* メイン */
-main {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 16px;
+/* サマリー */
+.summary-box {
+  display: flex;
+  justify-content: space-around;
+  background: white;
+  margin: 10px;
+  padding: 10px;
+  border-radius: 12px;
+  font-weight: bold;
 }
 
 /* フィルター */
 .filter-area {
   display: flex;
   gap: 8px;
-  margin-bottom: 15px;
+  margin: 10px;
 }
 
 .filter-area button {
@@ -34,21 +37,21 @@ main {
   border-radius: 10px;
   border: 1px solid #ddd;
   background: white;
+  color: #333;
+  font-weight: bold;
   cursor: pointer;
 }
 
 .filter-area button.active {
   background: #4caf50;
   color: white;
-  border: none;
 }
 
 /* フォーム */
 .form-area {
-  display: flex;
-  flex-direction: column;
+  display: grid;
   gap: 10px;
-  margin-bottom: 20px;
+  padding: 10px;
 }
 
 input, select {
@@ -64,21 +67,15 @@ button {
   border-radius: 10px;
   background: #4caf50;
   color: white;
-  cursor: pointer;
 }
 
 /* カード */
 .food-card {
   background: white;
-  border-radius: 14px;
+  margin: 10px;
   padding: 14px;
-  margin-bottom: 12px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
-  transition: 0.2s;
-}
-
-.food-card:hover {
-  transform: translateY(-2px);
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 
 /* 状態 */
@@ -90,10 +87,4 @@ button {
 .completed {
   opacity: 0.5;
   filter: grayscale(1);
-}
-
-/* 削除 */
-.delete-btn {
-  margin-top: 8px;
-  background: #ff5252;
 }

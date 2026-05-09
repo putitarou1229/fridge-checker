@@ -9,18 +9,19 @@
 
 <body>
 
-<!-- 🔥 タイトル画面 -->
-<div id="homeScreen" class="home">
-  <h1>🥬 冷蔵庫チェッカー</h1>
-  <p>賞味期限を自動で管理</p>
-  <button onclick="startApp()">開始</button>
-</div>
-
 <header>
   <h1>🥬 冷蔵庫チェッカー</h1>
+  <p id="summary">読み込み中...</p>
 </header>
 
 <main>
+
+  <!-- 状態サマリー -->
+  <div class="summary-box">
+    <div>🔥 危険: <span id="dangerCount">0</span></div>
+    <div>⚠️ 注意: <span id="warningCount">0</span></div>
+    <div>🟢 安全: <span id="safeCount">0</span></div>
+  </div>
 
   <!-- フィルター -->
   <div class="filter-area">
@@ -43,7 +44,6 @@
 
     <label for="deadline">消費期限</label>
     <input type="date" id="deadline">
-
     <button id="addBtn">追加</button>
   </div>
 
