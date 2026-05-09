@@ -22,8 +22,7 @@ let currentFilter = "all";
 renderFoods();
 
 /* 🔥 Service Worker登録（超重要） */
-navigator.serviceWorker.register("./firebase-messaging-sw.js");
-
+navigator.serviceWorker.register("/fridge-checker/firebase-messaging-sw.js");
 /* 🔥 通知許可 & トークン取得 */
 async function initFCM() {
 
