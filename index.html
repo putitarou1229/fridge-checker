@@ -29,10 +29,23 @@
 
     <!-- DASHBOARD -->
     <section id="dashboard" class="panel active">
-      <div class="kpi">
-        💀 <span id="dangerCount">0</span>
-        ⚠️ <span id="warningCount">0</span>
-        🟢 <span id="safeCount">0</span>
+      <div class="kpi-grid">
+
+        <div class="kpi-card danger-card">
+          <h3>💀 期限切れ</h3>
+          <p id="dangerCount">0</p>
+        </div>
+
+        <div class="kpi-card warning-card">
+          <h3>⚠️ 3日以内</h3>
+          <p id="warningCount">0</p>
+        </div>
+
+        <div class="kpi-card safe-card">
+          <h3>🥬 安全</h3>
+          <p id="safeCount">0</p>
+        </div>
+
       </div>
     </section>
 

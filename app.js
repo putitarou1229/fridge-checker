@@ -1,12 +1,18 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
 import {
   getFirestore,
   collection,
   addDoc,
-  getDocs
+  getDocs,
+  deleteDoc,
+  doc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* Firebase */
+/* =========================
+   Firebase
+========================= */
+
 const firebaseConfig = {
   apiKey: "AIzaSyB-RHabxjy1Zb5TOsBZfKLtBffq4Aa4Yn4",
   authDomain: "fridge-checker-fd18e.firebaseapp.com",
@@ -16,123 +22,12 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* 状態 */
+/* =========================
+   状態
+========================= */
+
 let foods = [];
 let currentTab = "dashboard";
-
-/* TAB切替 */
-window.switchTab = (tab) => {
-
-  document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
-  document.querySelectorAll(".tab").forEach(b => b.classList.remove("active"));
-
-  document.getElementById(tab).classList.add("active");
-  event.target.classList.add("active");
-
-  currentTab = tab;
-
-  if (tab === "analytics") updateAnalytics();
-};
-
-/* 追加 */
-document.getElementById("addBtn").onclick = async () => {
-
-  const name = document.getElementById("name").value;
-  const amount = document.getElementById("amount").value;
-  const deadline = document.getElementById("deadline").value;
-
-  const doc = {
-    name,
-    amount,
-    deadline,
-    createdAt: Date.now()
-  };
-
-  await addDoc(collection(db, "foods"), doc);
-
-  loadFoods();
-};
-
-/* 読み込み */
-async function loadFoods() {
-
-  const snap = await getDocs(collection(db, "foods"));
-
-  foods = snap.docs.map(d => d.data());
-
-  renderFoods();
-  updateDashboard();
-}
-
-/* ダッシュボード */
-function updateDashboard() {
-
-  let danger = 0, warning = 0, safe = 0;
-
-  foods.forEach(f => {
-    const days = getDays(f.deadline);
-    if (days < 0) danger++;
-    else if (days <= 3) warning++;
-    else safe++;
-  });
-
-  document.getElementById("dangerCount").textContent = danger;
-  document.getElementById("warningCount").textContent = warning;
-  document.getElementById("safeCount").textContent = safe;
-}
-
-/* リスト */
-function renderFoods() {
-
-  const list = document.getElementById("foodList");
-  list.innerHTML = "";
-
-  foods.forEach(f => {
-
-    const div = document.createElement("div");
-    div.className = "food-card";
-
-    div.innerHTML = `
-      <b>${f.name}</b>
-      <div>${f.amount}</div>
-      <div>${f.deadline}</div>
-    `;
-
-    list.appendChild(div);
-  });
-}
-
-/* 日数 */
-function getDays(date) {
-  return Math.ceil((new Date(date) - new Date()) / 86400000);
-}
-
-/* Analytics（仮グラフデータ） */
-function updateAnalytics() {
-
-  const data = [
-    { food: "もやし", loss: 10 },
-    { food: "牛乳", loss: 7 },
-    { food: "卵", loss: 5 }
-  ];
-
-  document.getElementById("chartArea").innerHTML =
-    JSON.stringify(data, null, 2);
-}
-
-/* レシピ（ダミー） */
-window.getRecipe = () => {
-
-  const ing = document.getElementById("ingredients").value;
-
-  document.getElementById("recipeResult").innerHTML =
-    "🧠 レシピ: " + ing + "炒め";
-};
-
-/* 初期 */
-loadFoods();
-
-
 
 /* =========================
    タブ切り替え
@@ -160,13 +55,320 @@ window.switchTab = function(tabId) {
 
   topTabs.forEach(tab => {
 
-    if (tab.textContent.toLowerCase()
-      .includes(tabId.toLowerCase())) {
+    const text = tab.textContent.toLowerCase();
 
+    if (
+      (tabId === "dashboard" && text.includes("dashboard")) ||
+      (tabId === "foods" && text.includes("foods")) ||
+      (tabId === "analytics" && text.includes("analytics")) ||
+      (tabId === "recipes" && text.includes("recipes")) ||
+      (tabId === "scan" && text.includes("scan"))
+    ) {
       tab.classList.add("active");
-
     }
 
   });
 
+  currentTab = tabId;
+
+  if (tabId === "analytics") {
+    updateAnalytics();
+  }
+
 };
+
+/* =========================
+   食材追加
+========================= */
+
+document.getElementById("addBtn").onclick = async () => {
+
+  const name =
+    document.getElementById("name").value;
+
+  const amount =
+    document.getElementById("amount").value;
+
+  const deadline =
+    document.getElementById("deadline").value;
+
+  if (!name || !amount || !deadline) {
+    alert("入力してください");
+    return;
+  }
+
+  const food = {
+    name,
+    amount,
+    deadline,
+    createdAt: Date.now()
+  };
+
+  await addDoc(
+    collection(db, "foods"),
+    food
+  );
+
+  /* 入力リセット */
+  document.getElementById("name").value = "";
+  document.getElementById("amount").value = "";
+  document.getElementById("deadline").value = "";
+
+  loadFoods();
+
+};
+
+/* =========================
+   Firestore読込
+========================= */
+
+async function loadFoods() {
+
+  const snap =
+    await getDocs(collection(db, "foods"));
+
+  foods = snap.docs.map(d => ({
+    id: d.id,
+    ...d.data()
+  }));
+
+  renderFoods();
+
+  updateDashboard();
+
+}
+
+/* =========================
+   ダッシュボード
+========================= */
+
+function updateDashboard() {
+
+  let danger = 0;
+  let warning = 0;
+  let safe = 0;
+
+  foods.forEach(food => {
+
+    const days =
+      getDays(food.deadline);
+
+    if (days < 0) {
+      danger++;
+    }
+    else if (days <= 3) {
+      warning++;
+    }
+    else {
+      safe++;
+    }
+
+  });
+
+  document.getElementById("dangerCount")
+    .textContent = danger;
+
+  document.getElementById("warningCount")
+    .textContent = warning;
+
+  document.getElementById("safeCount")
+    .textContent = safe;
+
+}
+
+/* =========================
+   食材描画
+========================= */
+
+function renderFoods() {
+
+  const list =
+    document.getElementById("foodList");
+
+  list.innerHTML = "";
+
+  foods.sort((a, b) =>
+    getDays(a.deadline) -
+    getDays(b.deadline)
+  );
+
+  foods.forEach(food => {
+
+    const days =
+      getDays(food.deadline);
+
+    let badge = "🥬 安全";
+    let status = "safe";
+
+    if (days < 0) {
+      badge = "💀 期限切れ";
+      status = "danger";
+    }
+    else if (days <= 3) {
+      badge = "⚠️ 3日以内";
+      status = "warning";
+    }
+
+    const div =
+      document.createElement("div");
+
+    div.className =
+      `food-card ${status}`;
+
+    div.innerHTML = `
+      <div class="food-top">
+
+        <h3>${food.name}</h3>
+
+        <span class="badge">
+          ${badge}
+        </span>
+
+      </div>
+
+      <div class="food-info">
+
+        <p>数量: ${food.amount}</p>
+
+        <p>期限: ${food.deadline}</p>
+
+        <p>残り: ${days}日</p>
+
+      </div>
+
+      <button
+        class="delete-btn"
+        onclick="deleteFood('${food.id}')">
+
+        削除
+
+      </button>
+    `;
+
+    list.appendChild(div);
+
+  });
+
+}
+
+/* =========================
+   削除
+========================= */
+
+window.deleteFood = async function(id) {
+
+  await deleteDoc(
+    doc(db, "foods", id)
+  );
+
+  loadFoods();
+
+};
+
+/* =========================
+   日数計算
+========================= */
+
+function getDays(date) {
+
+  const now = new Date();
+  const target = new Date(date);
+
+  now.setHours(0,0,0,0);
+  target.setHours(0,0,0,0);
+
+  return Math.ceil(
+    (target - now) / 86400000
+  );
+
+}
+
+/* =========================
+   Analytics
+========================= */
+
+function updateAnalytics() {
+
+  const danger =
+    foods.filter(f =>
+      getDays(f.deadline) < 0
+    ).length;
+
+  const warning =
+    foods.filter(f => {
+
+      const d =
+        getDays(f.deadline);
+
+      return d >= 0 && d <= 3;
+
+    }).length;
+
+  const safe =
+    foods.filter(f =>
+      getDays(f.deadline) > 3
+    ).length;
+
+  document.getElementById("chartArea")
+    .innerHTML = `
+
+      <div class="analytics-card">
+        💀 期限切れ: ${danger}
+      </div>
+
+      <div class="analytics-card">
+        ⚠️ 3日以内: ${warning}
+      </div>
+
+      <div class="analytics-card">
+        🥬 安全: ${safe}
+      </div>
+
+    `;
+
+}
+
+/* =========================
+   AIレシピ
+========================= */
+
+window.getRecipe = function() {
+
+  const ing =
+    document.getElementById("ingredients").value;
+
+  if (!ing) {
+    alert("食材を入力");
+    return;
+  }
+
+  document.getElementById("recipeResult")
+    .innerHTML = `
+
+      <div class="recipe-card">
+
+        <h3>🍳 AIレシピ提案</h3>
+
+        <p>
+          ${ing}炒め
+        </p>
+
+        <p>
+          ${ing}スープ
+        </p>
+
+        <p>
+          ${ing}丼
+        </p>
+
+      </div>
+
+    `;
+
+};
+
+/* =========================
+   初期化
+========================= */
+
+loadFoods();

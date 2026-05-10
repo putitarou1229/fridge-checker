@@ -109,6 +109,77 @@ body {
   display: block;
 }
 
+/* =========================
+   KPI
+========================= */
+
+.kpi-grid {
+
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+
+  gap: 12px;
+  margin-top: 20px;
+
+}
+
+.kpi-card {
+
+  background: white;
+  border-radius: 18px;
+
+  padding: 20px;
+  text-align: center;
+
+  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+
+  transition: 0.2s;
+
+}
+
+.kpi-card:hover {
+  transform: translateY(-4px);
+}
+
+.kpi-card h3 {
+  margin: 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.kpi-card p {
+
+  font-size: 34px;
+  font-weight: bold;
+
+  margin-top: 10px;
+
+}
+
+.danger-card {
+  border-top: 6px solid #f44336;
+}
+
+.warning-card {
+  border-top: 6px solid #ff9800;
+}
+
+.safe-card {
+  border-top: 6px solid #4caf50;
+}
+
+/* =========================
+   スマホ
+========================= */
+
+@media (max-width: 768px) {
+
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+}
+
 
 /* =========================
    スマホ
