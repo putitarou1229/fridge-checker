@@ -8,9 +8,9 @@ import {
 
 /* Firebase */
 const firebaseConfig = {
-  apiKey: "XXX",
-  authDomain: "XXX",
-  projectId: "XXX"
+  apiKey: "AIzaSyB-RHabxjy1Zb5TOsBZfKLtBffq4Aa4Yn4",
+  authDomain: "fridge-checker-fd18e.firebaseapp.com",
+  projectId: "fridge-checker-fd18e",
 };
 
 const app = initializeApp(firebaseConfig);
