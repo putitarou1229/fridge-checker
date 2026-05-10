@@ -131,3 +131,9 @@ window.getRecipe = () => {
 
 /* 初期 */
 loadFoods();
+
+window.showTab = function(tab) {
+
+  alert(tab + " タブ（次実装）");
+
+};
