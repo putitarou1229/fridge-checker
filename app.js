@@ -287,6 +287,12 @@ function getDays(date) {
    Analytics
 ========================= */
 
+let foodChart;
+
+/* =========================
+   Analytics
+========================= */
+
 function updateAnalytics() {
 
   const danger =
@@ -309,22 +315,61 @@ function updateAnalytics() {
       getDays(f.deadline) > 3
     ).length;
 
-  document.getElementById("chartArea")
-    .innerHTML = `
+  const ctx =
+    document.getElementById("foodChart");
 
-      <div class="analytics-card">
-        💀 期限切れ: ${danger}
-      </div>
+  /* 前回グラフ削除 */
+  if (foodChart) {
+    foodChart.destroy();
+  }
 
-      <div class="analytics-card">
-        ⚠️ 3日以内: ${warning}
-      </div>
+  foodChart = new Chart(ctx, {
 
-      <div class="analytics-card">
-        🥬 安全: ${safe}
-      </div>
+    type: "doughnut",
 
-    `;
+    data: {
+
+      labels: [
+        "💀 期限切れ",
+        "⚠️ 3日以内",
+        "🥬 安全"
+      ],
+
+      datasets: [{
+
+        data: [
+          danger,
+          warning,
+          safe
+        ],
+
+        backgroundColor: [
+          "#f44336",
+          "#ff9800",
+          "#4caf50"
+        ],
+
+        borderWidth: 0
+
+      }]
+
+    },
+
+    options: {
+
+      responsive: true,
+
+      plugins: {
+
+        legend: {
+          position: "bottom"
+        }
+
+      }
+
+    }
+
+  });
 
 }
 

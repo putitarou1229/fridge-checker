@@ -62,11 +62,15 @@
     </section>
 
     <!-- ANALYTICS -->
-    <section id="analytics" class="panel">
-      <h3>📊 フードロス分析</h3>
-      <div id="chartArea"></div>
-    </section>
+<section id="analytics" class="panel">
 
+  <h3>📊 フードロス分析</h3>
+
+  <div id="chartArea"></div>
+
+  <canvas id="foodChart"></canvas>
+
+</section>
     <!-- RECIPES -->
     <section id="recipes" class="panel">
       <h3>🍳 AIレシピ</h3>
@@ -110,6 +114,7 @@
   </main>
 
   <script type="module" src="app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </body>
 
 </html>

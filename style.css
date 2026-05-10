@@ -169,6 +169,28 @@ body {
 }
 
 /* =========================
+   グラフ
+========================= */
+
+#foodChart {
+
+  margin-top: 20px;
+
+  background: white;
+
+  border-radius: 20px;
+
+  padding: 20px;
+
+  max-width: 420px;
+  max-height: 420px;
+
+  margin-left: auto;
+  margin-right: auto;
+
+}
+
+/* =========================
    スマホ
 ========================= */
 
