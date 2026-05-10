@@ -33,7 +33,7 @@ let currentTab = "dashboard";
    タブ切り替え
 ========================= */
 
-window.switchTab = function(tabId) {
+window.switchTab = function (tabId) {
 
   /* パネル */
   document.querySelectorAll(".panel")
@@ -92,6 +92,9 @@ document.getElementById("addBtn").onclick = async () => {
   const deadline =
     document.getElementById("deadline").value;
 
+  const category =
+    document.getElementById("category").value;
+
   if (!name || !amount || !deadline) {
     alert("入力してください");
     return;
@@ -100,6 +103,7 @@ document.getElementById("addBtn").onclick = async () => {
   const food = {
     name,
     amount,
+    category,
     deadline,
     createdAt: Date.now()
   };
@@ -148,7 +152,27 @@ function updateDashboard() {
   let warning = 0;
   let safe = 0;
 
+
+  const keyword =
+    document.getElementById("searchInput")
+      ?.value
+      ?.toLowerCase() || "";
+
+  const selectedCategory =
+    document.getElementById("filterCategory")
+      ?.value || "all";
+
   foods.forEach(food => {
+
+    if (
+      keyword &&
+      !food.name.toLowerCase().includes(keyword)
+    ) return;
+
+    if (
+      selectedCategory !== "all" &&
+      food.category !== selectedCategory
+    ) return;
 
     const days =
       getDays(food.deadline);
@@ -187,12 +211,36 @@ function renderFoods() {
 
   list.innerHTML = "";
 
+  /* 期限順ソート */
   foods.sort((a, b) =>
     getDays(a.deadline) -
     getDays(b.deadline)
   );
 
+  /* 🔍 検索 */
+  const keyword =
+    document.getElementById("searchInput")
+      ?.value
+      ?.toLowerCase() || "";
+
+  /* 🏷️ カテゴリ */
+  const selectedCategory =
+    document.getElementById("filterCategory")
+      ?.value || "all";
+
   foods.forEach(food => {
+
+    /* 🔍 食材検索 */
+    if (
+      keyword &&
+      !food.name.toLowerCase().includes(keyword)
+    ) return;
+
+    /* 🏷️ カテゴリ絞り込み */
+    if (
+      selectedCategory !== "all" &&
+      food.category !== selectedCategory
+    ) return;
 
     const days =
       getDays(food.deadline);
@@ -201,12 +249,16 @@ function renderFoods() {
     let status = "safe";
 
     if (days < 0) {
+
       badge = "💀 期限切れ";
       status = "danger";
+
     }
     else if (days <= 3) {
+
       badge = "⚠️ 3日以内";
       status = "warning";
+
     }
 
     const div =
@@ -216,6 +268,7 @@ function renderFoods() {
       `food-card ${status}`;
 
     div.innerHTML = `
+
       <div class="food-top">
 
         <h3>${food.name}</h3>
@@ -230,6 +283,8 @@ function renderFoods() {
 
         <p>数量: ${food.amount}</p>
 
+        <p>カテゴリ: ${food.category}</p>
+
         <p>期限: ${food.deadline}</p>
 
         <p>残り: ${days}日</p>
@@ -243,6 +298,7 @@ function renderFoods() {
         削除
 
       </button>
+
     `;
 
     list.appendChild(div);
@@ -255,7 +311,7 @@ function renderFoods() {
    削除
 ========================= */
 
-window.deleteFood = async function(id) {
+window.deleteFood = async function (id) {
 
   await deleteDoc(
     doc(db, "foods", id)
@@ -274,8 +330,8 @@ function getDays(date) {
   const now = new Date();
   const target = new Date(date);
 
-  now.setHours(0,0,0,0);
-  target.setHours(0,0,0,0);
+  now.setHours(0, 0, 0, 0);
+  target.setHours(0, 0, 0, 0);
 
   return Math.ceil(
     (target - now) / 86400000
@@ -377,7 +433,7 @@ function updateAnalytics() {
    AIレシピ
 ========================= */
 
-window.getRecipe = function() {
+window.getRecipe = function () {
 
   const ing =
     document.getElementById("ingredients").value;
@@ -411,6 +467,14 @@ window.getRecipe = function() {
     `;
 
 };
+
+document
+  .getElementById("searchInput")
+  ?.addEventListener("input", renderFoods);
+
+document
+  .getElementById("filterCategory")
+  ?.addEventListener("change", renderFoods);
 
 /* =========================
    初期化

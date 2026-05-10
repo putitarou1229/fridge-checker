@@ -54,23 +54,54 @@
       <div class="form">
         <input id="name" placeholder="食材名">
         <input id="amount" type="number" placeholder="数量">
+        <select id="category">
+
+          <option value="野菜">🥬 野菜</option>
+          <option value="肉">🥩 肉</option>
+          <option value="魚">🐟 魚</option>
+          <option value="乳製品">🥛 乳製品</option>
+          <option value="飲み物">🥤 飲み物</option>
+          <option value="その他">📦 その他</option>
+
+        </select>
         <input id="deadline" type="date">
+
         <button id="addBtn">追加</button>
+
       </div>
 
+      <div class="search-area">
+
+        <input id="searchInput" placeholder="🔍 食材検索">
+
+        <select id="filterCategory">
+
+          <option value="all">すべて</option>
+
+          <option value="野菜">🥬 野菜</option>
+          <option value="肉">🥩 肉</option>
+          <option value="魚">🐟 魚</option>
+          <option value="乳製品">🥛 乳製品</option>
+          <option value="飲み物">🥤 飲み物</option>
+          <option value="その他">📦 その他</option>
+
+        </select>
+
+      </div>
+      
       <div id="foodList"></div>
     </section>
 
     <!-- ANALYTICS -->
-<section id="analytics" class="panel">
+    <section id="analytics" class="panel">
 
-  <h3>📊 フードロス分析</h3>
+      <h3>📊 フードロス分析</h3>
 
-  <div id="chartArea"></div>
+      <div id="chartArea"></div>
 
-  <canvas id="foodChart"></canvas>
+      <canvas id="foodChart"></canvas>
 
-</section>
+    </section>
     <!-- RECIPES -->
     <section id="recipes" class="panel">
       <h3>🍳 AIレシピ</h3>

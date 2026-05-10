@@ -191,6 +191,26 @@ body {
 }
 
 /* =========================
+   検索
+========================= */
+
+.search-area {
+
+  display: flex;
+  gap: 10px;
+
+  margin-bottom: 20px;
+
+}
+
+.search-area input,
+.search-area select {
+
+  flex: 1;
+
+}
+
+/* =========================
    スマホ
 ========================= */
 
