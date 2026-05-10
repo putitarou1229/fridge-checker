@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Fridge SaaS</title>
   <link rel="stylesheet" href="style.css" />
   <link rel="icon" href="icon.png">
@@ -10,91 +11,92 @@
 
 <body>
 
-<header class="topbar">
-  <h1>🥬 Fridge SaaS</h1>
-  <span id="plan">Free</span>
-</header>
+  <header class="topbar">
+    <h1>🥬 Fridge SaaS</h1>
+    <span id="plan">Free</span>
+  </header>
 
-<!-- TAB NAV -->
-<nav class="tabs">
-  <button class="tab active" onclick="switchTab('dashboard')">Dashboard</button>
-  <button class="tab" onclick="switchTab('foods')">Foods</button>
-  <button class="tab" onclick="switchTab('analytics')">Analytics</button>
-  <button class="tab" onclick="switchTab('recipes')">Recipes</button>
-  <button class="tab" onclick="switchTab('scan')">Scan</button>
-</nav>
+  <!-- TAB NAV -->
+  <nav class="tabs">
+    <button class="tab active" onclick="switchTab('dashboard')">Dashboard</button>
+    <button class="tab" onclick="switchTab('foods')">Foods</button>
+    <button class="tab" onclick="switchTab('analytics')">Analytics</button>
+    <button class="tab" onclick="switchTab('recipes')">Recipes</button>
+    <button class="tab" onclick="switchTab('scan')">Scan</button>
+  </nav>
 
-<main class="container">
+  <main class="container">
 
-  <!-- DASHBOARD -->
-  <section id="dashboard" class="panel active">
-    <div class="kpi">
-      💀 <span id="dangerCount">0</span>
-      ⚠️ <span id="warningCount">0</span>
-      🟢 <span id="safeCount">0</span>
-    </div>
-  </section>
+    <!-- DASHBOARD -->
+    <section id="dashboard" class="panel active">
+      <div class="kpi">
+        💀 <span id="dangerCount">0</span>
+        ⚠️ <span id="warningCount">0</span>
+        🟢 <span id="safeCount">0</span>
+      </div>
+    </section>
 
-  <!-- FOODS -->
-  <section id="foods" class="panel">
-    <div class="form">
-      <input id="name" placeholder="食材名">
-      <input id="amount" type="number" placeholder="数量">
-      <input id="deadline" type="date">
-      <button id="addBtn">追加</button>
-    </div>
+    <!-- FOODS -->
+    <section id="foods" class="panel">
+      <div class="form">
+        <input id="name" placeholder="食材名">
+        <input id="amount" type="number" placeholder="数量">
+        <input id="deadline" type="date">
+        <button id="addBtn">追加</button>
+      </div>
 
-    <div id="foodList"></div>
-  </section>
+      <div id="foodList"></div>
+    </section>
 
-  <!-- ANALYTICS -->
-  <section id="analytics" class="panel">
-    <h3>📊 フードロス分析</h3>
-    <div id="chartArea"></div>
-  </section>
+    <!-- ANALYTICS -->
+    <section id="analytics" class="panel">
+      <h3>📊 フードロス分析</h3>
+      <div id="chartArea"></div>
+    </section>
 
-  <!-- RECIPES -->
-  <section id="recipes" class="panel">
-    <h3>🍳 AIレシピ</h3>
-    <textarea id="ingredients" placeholder="食材を入力"></textarea>
-    <button onclick="getRecipe()">生成</button>
-    <div id="recipeResult"></div>
-  </section>
+    <!-- RECIPES -->
+    <section id="recipes" class="panel">
+      <h3>🍳 AIレシピ</h3>
+      <textarea id="ingredients" placeholder="食材を入力"></textarea>
+      <button onclick="getRecipe()">生成</button>
+      <div id="recipeResult"></div>
+    </section>
 
-  <!-- SCAN -->
-  <section id="scan" class="panel">
-    <h3>📷 レシートスキャン</h3>
-    <input type="file" />
-    <p>※OCR連携予定</p>
-  </section>
+    <!-- SCAN -->
+    <section id="scan" class="panel">
+      <h3>📷 レシートスキャン</h3>
+      <input type="file" />
+      <p>※OCR連携予定</p>
+    </section>
 
-  <!-- 📱 下タブ -->
-<nav class="bottom-nav">
+    <!-- 📱 下タブ -->
+    <nav class="bottom-nav">
 
-  <button onclick="showTab('home')">
-    🏠<span>ホーム</span>
-  </button>
+      <button onclick="switchTab('dashboard')">
+        🏠<span>ホーム</span>
+      </button>
 
-  <button onclick="showTab('foods')">
-    🥬<span>食材</span>
-  </button>
+      <button onclick="switchTab('foods')">
+        🥬<span>食材</span>
+      </button>
 
-  <button onclick="showTab('stats')">
-    📊<span>統計</span>
-  </button>
+      <button onclick="switchTab('analytics')">
+        📊<span>統計</span>
+      </button>
 
-  <button onclick="showTab('ai')">
-    🤖<span>AI</span>
-  </button>
+      <button onclick="switchTab('recipes')">
+        🤖<span>AI</span>
+      </button>
 
-  <button onclick="showTab('settings')">
-    ⚙️<span>設定</span>
-  </button>
+      <button onclick="switchTab('scan')">
+        📷<span>Scan</span>
+      </button>
 
-</nav>
+    </nav>
 
-</main>
+  </main>
 
-<script type="module" src="app.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
+
 </html>

@@ -98,23 +98,40 @@ body {
 }
 
 /* =========================
-   📱 スマホ
+   PANEL
+========================= */
+
+.panel {
+  display: none;
+}
+
+.panel.active {
+  display: block;
+}
+
+
+/* =========================
+   スマホ
 ========================= */
 
 @media (max-width: 768px) {
+
+  .tabs {
+    display: none;
+  }
 
   .bottom-nav {
     display: flex;
   }
 
-  main {
+  .container {
     padding-bottom: 90px;
   }
 
 }
 
 /* =========================
-   💻 PC
+   PC
 ========================= */
 
 @media (min-width: 769px) {
@@ -124,3 +141,4 @@ body {
   }
 
 }
+

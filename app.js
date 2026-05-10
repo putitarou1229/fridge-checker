@@ -132,8 +132,41 @@ window.getRecipe = () => {
 /* 初期 */
 loadFoods();
 
-window.showTab = function(tab) {
 
-  alert(tab + " タブ（次実装）");
+
+/* =========================
+   タブ切り替え
+========================= */
+
+window.switchTab = function(tabId) {
+
+  /* パネル */
+  document.querySelectorAll(".panel")
+    .forEach(panel => {
+      panel.classList.remove("active");
+    });
+
+  document
+    .getElementById(tabId)
+    .classList.add("active");
+
+  /* 上タブ */
+  document.querySelectorAll(".tab")
+    .forEach(tab => {
+      tab.classList.remove("active");
+    });
+
+  const topTabs = document.querySelectorAll(".tab");
+
+  topTabs.forEach(tab => {
+
+    if (tab.textContent.toLowerCase()
+      .includes(tabId.toLowerCase())) {
+
+      tab.classList.add("active");
+
+    }
+
+  });
 
 };
