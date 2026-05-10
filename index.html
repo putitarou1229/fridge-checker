@@ -88,20 +88,48 @@
         </select>
 
       </div>
-      
+
       <div id="foodList"></div>
     </section>
 
     <!-- ANALYTICS -->
     <section id="analytics" class="panel">
 
-      <h3>📊 フードロス分析</h3>
+  <h3>📊 フードロス分析</h3>
 
-      <div id="chartArea"></div>
+  <!-- KPI -->
+  <div class="analytics-grid">
 
-      <canvas id="foodChart"></canvas>
+    <div class="analytics-card">
+      <h4>📦 総食材数</h4>
+      <p id="totalFoods">0</p>
+    </div>
 
-    </section>
+    <div class="analytics-card">
+      <h4>💀 廃棄率</h4>
+      <p id="lossRate">0%</p>
+    </div>
+
+    <div class="analytics-card">
+      <h4>⚠️ 危険食材</h4>
+      <p id="dangerFoods">0</p>
+    </div>
+
+  </div>
+
+  <!-- グラフ -->
+  <canvas id="foodChart"></canvas>
+
+  <!-- ランキング -->
+  <div class="ranking-card">
+
+    <h3>🥇 カテゴリランキング</h3>
+
+    <div id="rankingArea"></div>
+
+  </div>
+
+</section>
     <!-- RECIPES -->
     <section id="recipes" class="panel">
       <h3>🍳 AIレシピ</h3>

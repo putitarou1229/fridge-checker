@@ -191,6 +191,76 @@ body {
 }
 
 /* =========================
+   Analytics
+========================= */
+
+.analytics-grid {
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(auto-fit, minmax(140px,1fr));
+
+  gap: 15px;
+
+  margin-bottom: 20px;
+
+}
+
+.analytics-card {
+
+  background: white;
+
+  border-radius: 16px;
+
+  padding: 20px;
+
+  text-align: center;
+
+  box-shadow:
+    0 2px 10px rgba(0,0,0,0.06);
+
+}
+
+.analytics-card h4 {
+
+  margin-bottom: 10px;
+
+}
+
+.analytics-card p {
+
+  font-size: 28px;
+  font-weight: bold;
+
+}
+
+.ranking-card {
+
+  margin-top: 20px;
+
+  background: white;
+
+  border-radius: 20px;
+
+  padding: 20px;
+
+}
+
+.rank-item {
+
+  display: flex;
+
+  justify-content: space-between;
+
+  padding: 12px 0;
+
+  border-bottom:
+    1px solid #eee;
+
+}
+
+/* =========================
    検索
 ========================= */
 

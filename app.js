@@ -351,12 +351,14 @@ let foodChart;
 
 function updateAnalytics() {
 
-  const danger =
+  const total = foods.length;
+
+  const expiredFoods =
     foods.filter(f =>
       getDays(f.deadline) < 0
-    ).length;
+    );
 
-  const warning =
+  const warningFoods =
     foods.filter(f => {
 
       const d =
@@ -364,17 +366,40 @@ function updateAnalytics() {
 
       return d >= 0 && d <= 3;
 
-    }).length;
+    });
 
-  const safe =
+  const safeFoods =
     foods.filter(f =>
       getDays(f.deadline) > 3
-    ).length;
+    );
+
+  /* =====================
+     KPI
+  ===================== */
+
+  document.getElementById("totalFoods")
+    .textContent = total;
+
+  document.getElementById("dangerFoods")
+    .textContent = warningFoods.length;
+
+  const lossRate =
+    total === 0
+      ? 0
+      : Math.round(
+          (expiredFoods.length / total) * 100
+        );
+
+  document.getElementById("lossRate")
+    .textContent = `${lossRate}%`;
+
+  /* =====================
+     円グラフ
+  ===================== */
 
   const ctx =
     document.getElementById("foodChart");
 
-  /* 前回グラフ削除 */
   if (foodChart) {
     foodChart.destroy();
   }
@@ -394,9 +419,9 @@ function updateAnalytics() {
       datasets: [{
 
         data: [
-          danger,
-          warning,
-          safe
+          expiredFoods.length,
+          warningFoods.length,
+          safeFoods.length
         ],
 
         backgroundColor: [
@@ -424,6 +449,49 @@ function updateAnalytics() {
       }
 
     }
+
+  });
+
+  /* =====================
+     カテゴリランキング
+  ===================== */
+
+  const categoryCount = {};
+
+  foods.forEach(food => {
+
+    const cat =
+      food.category || "その他";
+
+    categoryCount[cat] =
+      (categoryCount[cat] || 0) + 1;
+
+  });
+
+  const ranking =
+    Object.entries(categoryCount)
+      .sort((a, b) => b[1] - a[1]);
+
+  const rankingArea =
+    document.getElementById("rankingArea");
+
+  rankingArea.innerHTML = "";
+
+  ranking.forEach((r, index) => {
+
+    rankingArea.innerHTML += `
+
+      <div class="rank-item">
+
+        <span>
+          ${index + 1}位 ${r[0]}
+        </span>
+
+        <b>${r[1]}件</b>
+
+      </div>
+
+    `;
 
   });
 
