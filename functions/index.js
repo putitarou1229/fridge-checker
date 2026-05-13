@@ -11,13 +11,13 @@ console.log(
 /* Gemini */
 const genAI =
   new GoogleGenerativeAI(
-    "AIzaSyBTYeo2t33bg1ylfX5-Pm26ziatRlD-1A0"
+    process.env.GEMINI_API_KEY
   );
 
 /* モデル */
 const model =
   genAI.getGenerativeModel({
-    model: "gemini-1.5-flash"
+    model: "gemini-2.0-flash"
   });
 
 /* レシピ生成API */
