@@ -1,32 +1,67 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * const {onCall} = require("firebase-functions/v2/https");
- * const {onDocumentWritten} = require("firebase-functions/v2/firestore");
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
+const functions = require("firebase-functions");
+const { GoogleGenerativeAI } =
+  require("@google/generative-ai");
 
-const {setGlobalOptions} = require("firebase-functions");
-const {onRequest} = require("firebase-functions/https");
-const logger = require("firebase-functions/logger");
+/* Gemini */
+const genAI =
+  new GoogleGenerativeAI(
+    process.env.GEMINI_API_KEY
+  );
 
-// For cost control, you can set the maximum number of containers that can be
-// running at the same time. This helps mitigate the impact of unexpected
-// traffic spikes by instead downgrading performance. This limit is a
-// per-function limit. You can override the limit for each function using the
-// `maxInstances` option in the function's options, e.g.
-// `onRequest({ maxInstances: 5 }, (req, res) => { ... })`.
-// NOTE: setGlobalOptions does not apply to functions using the v1 API. V1
-// functions should each use functions.runWith({ maxInstances: 10 }) instead.
-// In the v1 API, each function can only serve one request per container, so
-// this will be the maximum concurrent request count.
-setGlobalOptions({ maxInstances: 10 });
+/* レシピ生成API */
+exports.generateRecipe =
+  functions.https.onRequest(
+    async (req, res) => {
 
-// Create and deploy your first functions
-// https://firebase.google.com/docs/functions/get-started
+      try {
 
-// exports.helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+        /* CORS */
+        res.set("Access-Control-Allow-Origin", "*");
+        res.set("Access-Control-Allow-Headers", "*");
+
+        if (req.method === "OPTIONS") {
+          res.status(204).send("");
+          return;
+        }
+
+        const ingredients =
+          req.body.ingredients;
+
+        const model =
+          genAI.getGenerativeModel({
+            model: "gemini-1.5-flash"
+          });
+
+        const prompt = `
+以下の食材で作れる料理を
+3つ提案してください。
+
+【食材】
+${ingredients}
+
+【条件】
+・日本語
+・簡潔
+・家庭料理
+`;
+
+        const result =
+          await model.generateContent(prompt);
+
+        const text =
+          result.response.text();
+
+        res.json({ text });
+
+      } catch (e) {
+
+        console.error(e);
+
+        res.status(500).json({
+          error: "Gemini Error"
+        });
+
+      }
+
+    }
+  );

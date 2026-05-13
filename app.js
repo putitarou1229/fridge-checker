@@ -501,7 +501,7 @@ function updateAnalytics() {
    AIレシピ
 ========================= */
 
-window.getRecipe = function () {
+window.getRecipe = async function () {
 
   const ing =
     document.getElementById("ingredients").value;
@@ -512,27 +512,49 @@ window.getRecipe = function () {
   }
 
   document.getElementById("recipeResult")
-    .innerHTML = `
+    .innerHTML = "🤖 AI生成中...";
 
-      <div class="recipe-card">
+  try {
 
-        <h3>🍳 AIレシピ提案</h3>
+    const res = await fetch(
+      "https://generaterecipe-nqod4cxoqq-uc.a.run.app",
+      {
+        method: "POST",
 
-        <p>
-          ${ing}炒め
-        </p>
+        headers: {
+          "Content-Type": "application/json"
+        },
 
-        <p>
-          ${ing}スープ
-        </p>
+        body: JSON.stringify({
+          ingredients: ing
+        })
+      }
+    );
 
-        <p>
-          ${ing}丼
-        </p>
+    const data = await res.json();
 
-      </div>
+    document.getElementById("recipeResult")
+      .innerHTML = `
 
-    `;
+        <div class="recipe-card">
+
+          <h3>🤖 AIレシピ提案</h3>
+
+          <pre>${data.text}</pre>
+
+        </div>
+
+      `;
+
+  } catch (e) {
+
+    console.error(e);
+
+    document.getElementById("recipeResult")
+      .innerHTML =
+      "AI生成失敗";
+
+  }
 
 };
 
