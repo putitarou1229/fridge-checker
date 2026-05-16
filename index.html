@@ -139,11 +139,25 @@
     </section>
 
     <!-- SCAN -->
-    <section id="scan" class="panel">
+    <!-- <section id="scan" class="panel">
       <h3>📷 レシートスキャン</h3>
       <input type="file" />
       <p>※OCR連携予定</p>
-    </section>
+    </section> -->
+
+    <div id="scan" class="panel">
+
+  <h2>📷 レシートスキャン</h2>
+
+  <input type="file" id="receiptInput" accept="image/*">
+
+  <button id="scanBtn">OCR開始</button>
+
+  <div id="scanStatus"></div>
+
+  <div id="ocrResult"></div>
+
+</div>
 
     <!-- 📱 下タブ -->
     <nav class="bottom-nav">

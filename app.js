@@ -9,6 +9,13 @@ import {
   doc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+import {
+  getStorage,
+  ref,
+  uploadBytes,
+  getDownloadURL
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
 /* =========================
    Firebase
 ========================= */
@@ -17,10 +24,12 @@ const firebaseConfig = {
   apiKey: "AIzaSyB-RHabxjy1Zb5TOsBZfKLtBffq4Aa4Yn4",
   authDomain: "fridge-checker-fd18e.firebaseapp.com",
   projectId: "fridge-checker-fd18e",
+  storageBucket: "fridge-checker-fd18e.appspot.com",
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const storage = getStorage(app);
 
 /* =========================
    状態
@@ -35,26 +44,16 @@ let currentTab = "dashboard";
 
 window.switchTab = function (tabId) {
 
-  /* パネル */
   document.querySelectorAll(".panel")
-    .forEach(panel => {
-      panel.classList.remove("active");
-    });
+    .forEach(p => p.classList.remove("active"));
 
-  document
-    .getElementById(tabId)
+  document.getElementById(tabId)
     .classList.add("active");
 
-  /* 上タブ */
   document.querySelectorAll(".tab")
-    .forEach(tab => {
-      tab.classList.remove("active");
-    });
+    .forEach(tab => tab.classList.remove("active"));
 
-  const topTabs = document.querySelectorAll(".tab");
-
-  topTabs.forEach(tab => {
-
+  document.querySelectorAll(".tab").forEach(tab => {
     const text = tab.textContent.toLowerCase();
 
     if (
@@ -66,70 +65,51 @@ window.switchTab = function (tabId) {
     ) {
       tab.classList.add("active");
     }
-
   });
 
   currentTab = tabId;
 
-  if (tabId === "analytics") {
-    updateAnalytics();
-  }
-
+  if (tabId === "analytics") updateAnalytics();
 };
 
 /* =========================
-   食材追加
+   食材追加（手動）
 ========================= */
 
 document.getElementById("addBtn").onclick = async () => {
 
-  const name =
-    document.getElementById("name").value;
-
-  const amount =
-    document.getElementById("amount").value;
-
-  const deadline =
-    document.getElementById("deadline").value;
-
-  const category =
-    document.getElementById("category").value;
+  const name = document.getElementById("name").value;
+  const amount = document.getElementById("amount").value;
+  const deadline = document.getElementById("deadline").value;
+  const category = document.getElementById("category").value;
 
   if (!name || !amount || !deadline) {
     alert("入力してください");
     return;
   }
 
-  const food = {
+  await addDoc(collection(db, "foods"), {
     name,
     amount,
     category,
     deadline,
     createdAt: Date.now()
-  };
+  });
 
-  await addDoc(
-    collection(db, "foods"),
-    food
-  );
-
-  /* 入力リセット */
   document.getElementById("name").value = "";
   document.getElementById("amount").value = "";
   document.getElementById("deadline").value = "";
 
   loadFoods();
-
 };
 
 /* =========================
-   Firestore読込
+   Firestore 読込
 ========================= */
 
 async function loadFoods() {
 
-  const snap =
-    await getDocs(collection(db, "foods"));
+  const snap = await getDocs(collection(db, "foods"));
 
   foods = snap.docs.map(d => ({
     id: d.id,
@@ -137,9 +117,7 @@ async function loadFoods() {
   }));
 
   renderFoods();
-
   updateDashboard();
-
 }
 
 /* =========================
@@ -152,159 +130,85 @@ function updateDashboard() {
   let warning = 0;
   let safe = 0;
 
-
   const keyword =
-    document.getElementById("searchInput")
-      ?.value
-      ?.toLowerCase() || "";
+    document.getElementById("searchInput")?.value?.toLowerCase() || "";
 
   const selectedCategory =
-    document.getElementById("filterCategory")
-      ?.value || "all";
+    document.getElementById("filterCategory")?.value || "all";
 
   foods.forEach(food => {
 
-    if (
-      keyword &&
-      !food.name.toLowerCase().includes(keyword)
-    ) return;
+    if (keyword && !food.name.toLowerCase().includes(keyword)) return;
+    if (selectedCategory !== "all" && food.category !== selectedCategory) return;
 
-    if (
-      selectedCategory !== "all" &&
-      food.category !== selectedCategory
-    ) return;
+    const days = getDays(food.deadline);
 
-    const days =
-      getDays(food.deadline);
-
-    if (days < 0) {
-      danger++;
-    }
-    else if (days <= 3) {
-      warning++;
-    }
-    else {
-      safe++;
-    }
-
+    if (days < 0) danger++;
+    else if (days <= 3) warning++;
+    else safe++;
   });
 
-  document.getElementById("dangerCount")
-    .textContent = danger;
-
-  document.getElementById("warningCount")
-    .textContent = warning;
-
-  document.getElementById("safeCount")
-    .textContent = safe;
-
+  document.getElementById("dangerCount").textContent = danger;
+  document.getElementById("warningCount").textContent = warning;
+  document.getElementById("safeCount").textContent = safe;
 }
 
 /* =========================
-   食材描画
+   表示
 ========================= */
 
 function renderFoods() {
 
-  const list =
-    document.getElementById("foodList");
-
+  const list = document.getElementById("foodList");
   list.innerHTML = "";
 
-  /* 期限順ソート */
-  foods.sort((a, b) =>
-    getDays(a.deadline) -
-    getDays(b.deadline)
-  );
+  foods.sort((a, b) => getDays(a.deadline) - getDays(b.deadline));
 
-  /* 🔍 検索 */
   const keyword =
-    document.getElementById("searchInput")
-      ?.value
-      ?.toLowerCase() || "";
+    document.getElementById("searchInput")?.value?.toLowerCase() || "";
 
-  /* 🏷️ カテゴリ */
   const selectedCategory =
-    document.getElementById("filterCategory")
-      ?.value || "all";
+    document.getElementById("filterCategory")?.value || "all";
 
   foods.forEach(food => {
 
-    /* 🔍 食材検索 */
-    if (
-      keyword &&
-      !food.name.toLowerCase().includes(keyword)
-    ) return;
+    if (keyword && !food.name.toLowerCase().includes(keyword)) return;
+    if (selectedCategory !== "all" && food.category !== selectedCategory) return;
 
-    /* 🏷️ カテゴリ絞り込み */
-    if (
-      selectedCategory !== "all" &&
-      food.category !== selectedCategory
-    ) return;
-
-    const days =
-      getDays(food.deadline);
+    const days = getDays(food.deadline);
 
     let badge = "🥬 安全";
     let status = "safe";
 
     if (days < 0) {
-
       badge = "💀 期限切れ";
       status = "danger";
-
-    }
-    else if (days <= 3) {
-
+    } else if (days <= 3) {
       badge = "⚠️ 3日以内";
       status = "warning";
-
     }
 
-    const div =
-      document.createElement("div");
-
-    div.className =
-      `food-card ${status}`;
+    const div = document.createElement("div");
+    div.className = `food-card ${status}`;
 
     div.innerHTML = `
-
       <div class="food-top">
-
         <h3>${food.name}</h3>
-
-        <span class="badge">
-          ${badge}
-        </span>
-
+        <span class="badge">${badge}</span>
       </div>
 
       <div class="food-info">
-
         <p>数量: ${food.amount}</p>
-
         <p>カテゴリ: ${food.category}</p>
-
         <p>期限: ${food.deadline}</p>
-
         <p>残り: ${days}日</p>
-
       </div>
 
-      <button
-        class="delete-btn"
-        onclick="deleteFood('${food.id}')">
-
-        削除
-
-      </button>
-
+      <button onclick="deleteFood('${food.id}')">削除</button>
     `;
 
     list.appendChild(div);
-
   });
-
 }
 
 /* =========================
@@ -312,13 +216,8 @@ function renderFoods() {
 ========================= */
 
 window.deleteFood = async function (id) {
-
-  await deleteDoc(
-    doc(db, "foods", id)
-  );
-
+  await deleteDoc(doc(db, "foods", id));
   loadFoods();
-
 };
 
 /* =========================
@@ -326,245 +225,86 @@ window.deleteFood = async function (id) {
 ========================= */
 
 function getDays(date) {
-
   const now = new Date();
   const target = new Date(date);
 
   now.setHours(0, 0, 0, 0);
   target.setHours(0, 0, 0, 0);
 
-  return Math.ceil(
-    (target - now) / 86400000
-  );
-
+  return Math.ceil((target - now) / 86400000);
 }
 
 /* =========================
-   Analytics
+   ANALYTICS（そのまま維持）
 ========================= */
 
 let foodChart;
-
-/* =========================
-   Analytics
-========================= */
 
 function updateAnalytics() {
 
   const total = foods.length;
 
-  const expiredFoods =
-    foods.filter(f =>
-      getDays(f.deadline) < 0
-    );
+  const expired = foods.filter(f => getDays(f.deadline) < 0);
+  const warning = foods.filter(f => getDays(f.deadline) <= 3 && getDays(f.deadline) >= 0);
+  const safe = foods.filter(f => getDays(f.deadline) > 3);
 
-  const warningFoods =
-    foods.filter(f => {
+  document.getElementById("totalFoods").textContent = total;
+  document.getElementById("dangerFoods").textContent = warning.length;
 
-      const d =
-        getDays(f.deadline);
+  const lossRate = total === 0 ? 0 : Math.round((expired.length / total) * 100);
+  document.getElementById("lossRate").textContent = `${lossRate}%`;
 
-      return d >= 0 && d <= 3;
+  const ctx = document.getElementById("foodChart");
 
-    });
-
-  const safeFoods =
-    foods.filter(f =>
-      getDays(f.deadline) > 3
-    );
-
-  /* =====================
-     KPI
-  ===================== */
-
-  document.getElementById("totalFoods")
-    .textContent = total;
-
-  document.getElementById("dangerFoods")
-    .textContent = warningFoods.length;
-
-  const lossRate =
-    total === 0
-      ? 0
-      : Math.round(
-          (expiredFoods.length / total) * 100
-        );
-
-  document.getElementById("lossRate")
-    .textContent = `${lossRate}%`;
-
-  /* =====================
-     円グラフ
-  ===================== */
-
-  const ctx =
-    document.getElementById("foodChart");
-
-  if (foodChart) {
-    foodChart.destroy();
-  }
+  if (foodChart) foodChart.destroy();
 
   foodChart = new Chart(ctx, {
-
     type: "doughnut",
-
     data: {
-
-      labels: [
-        "💀 期限切れ",
-        "⚠️ 3日以内",
-        "🥬 安全"
-      ],
-
+      labels: ["期限切れ", "3日以内", "安全"],
       datasets: [{
-
-        data: [
-          expiredFoods.length,
-          warningFoods.length,
-          safeFoods.length
-        ],
-
-        backgroundColor: [
-          "#f44336",
-          "#ff9800",
-          "#4caf50"
-        ],
-
-        borderWidth: 0
-
+        data: [expired.length, warning.length, safe.length],
+        backgroundColor: ["#f44336", "#ff9800", "#4caf50"]
       }]
-
-    },
-
-    options: {
-
-      responsive: true,
-
-      plugins: {
-
-        legend: {
-          position: "bottom"
-        }
-
-      }
-
     }
-
   });
 
-  /* =====================
-     カテゴリランキング
-  ===================== */
+  const rankingArea = document.getElementById("rankingArea");
+  const map = {};
 
-  const categoryCount = {};
-
-  foods.forEach(food => {
-
-    const cat =
-      food.category || "その他";
-
-    categoryCount[cat] =
-      (categoryCount[cat] || 0) + 1;
-
+  foods.forEach(f => {
+    map[f.category || "その他"] = (map[f.category || "その他"] || 0) + 1;
   });
 
-  const ranking =
-    Object.entries(categoryCount)
-      .sort((a, b) => b[1] - a[1]);
-
-  const rankingArea =
-    document.getElementById("rankingArea");
-
-  rankingArea.innerHTML = "";
-
-  ranking.forEach((r, index) => {
-
-    rankingArea.innerHTML += `
-
-      <div class="rank-item">
-
-        <span>
-          ${index + 1}位 ${r[0]}
-        </span>
-
-        <b>${r[1]}件</b>
-
-      </div>
-
-    `;
-
-  });
-
+  rankingArea.innerHTML = Object.entries(map)
+    .sort((a, b) => b[1] - a[1])
+    .map((r, i) =>
+      `<div>${i + 1}位 ${r[0]} (${r[1]})</div>`
+    ).join("");
 }
 
 /* =========================
-   AIレシピ
+   AIレシピ（そのまま）
 ========================= */
 
 window.getRecipe = async function () {
 
-  const ing =
-    document.getElementById("ingredients").value;
+  const ing = document.getElementById("ingredients").value;
 
-  if (!ing) {
-    alert("食材を入力");
-    return;
-  }
+  const res = await fetch(
+    "https://generaterecipe-nqod4cxoqq-uc.a.run.app",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ingredients: ing })
+    }
+  );
 
-  document.getElementById("recipeResult")
-    .innerHTML = "🤖 AI生成中...";
+  const data = await res.json();
 
-  try {
-
-    const res = await fetch(
-      "https://generaterecipe-nqod4cxoqq-uc.a.run.app",
-      {
-        method: "POST",
-
-        headers: {
-          "Content-Type": "application/json"
-        },
-
-        body: JSON.stringify({
-          ingredients: ing
-        })
-      }
-    );
-
-    const data = await res.json();
-
-    document.getElementById("recipeResult")
-      .innerHTML = `
-
-        <div class="recipe-card">
-
-          <h3>🤖 AIレシピ提案</h3>
-
-          <pre>${data.text}</pre>
-
-        </div>
-
-      `;
-
-  } catch (e) {
-
-    console.error(e);
-
-    document.getElementById("recipeResult")
-      .innerHTML =
-      "AI生成失敗";
-
-  }
-
+  document.getElementById("recipeResult").innerHTML =
+    `<pre>${data.text}</pre>`;
 };
-
-document
-  .getElementById("searchInput")
-  ?.addEventListener("input", renderFoods);
-
-document
-  .getElementById("filterCategory")
-  ?.addEventListener("change", renderFoods);
 
 /* =========================
    初期化

@@ -2,11 +2,17 @@ const functions = require("firebase-functions");
 const { onRequest } = require("firebase-functions/v2/https");
 const { defineSecret } = require("firebase-functions/params");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const axios = require("axios");
+const FormData = require("form-data");
 
-/* Secret定義 */
+/* =========================
+   Secret
+========================= */
 const GEMINI_API_KEY = defineSecret("GEMINI_API_KEY");
 
-/* Gemini */
+/* =========================
+   Gemini（レシピ生成）
+========================= */
 exports.generateRecipe = onRequest(
   { secrets: [GEMINI_API_KEY] },
   async (req, res) => {
@@ -38,6 +44,7 @@ ${ingredients}
       res.json({
         text: response.text(),
       });
+
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: error.message });
@@ -45,34 +52,40 @@ ${ingredients}
   }
 );
 
-// OCR機能//
-exports.ocr = onRequest(
-  async (req, res) => {
-    try {
-      const file = req.body.file;
+/* =========================
+   OCR（本番版）
+   ※ fileではなく imageUrl方式
+========================= */
+exports.ocr = onRequest(async (req, res) => {
+  try {
+    const imageUrl = req.body.imageUrl;
 
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("apikey", process.env.OCR_API_KEY);
-      formData.append("language", "jpn");
-
-      const response = await fetch(
-        "https://api.ocr.space/parse/image",
-        {
-          method: "POST",
-          body: formData
-        }
-      );
-
-      const data = await response.json();
-
-      const text =
-        data?.ParsedResults?.[0]?.ParsedText || "";
-
-      res.json({ text });
-
-    } catch (e) {
-      res.status(500).json({ error: e.message });
+    if (!imageUrl) {
+      return res.status(400).json({ error: "imageUrlがありません" });
     }
+
+    const formData = new FormData();
+
+    // OCR.spaceはURL指定が安定
+    formData.append("url", imageUrl);
+    formData.append("apikey", process.env.OCR_API_KEY);
+    formData.append("language", "jpn");
+
+    const response = await axios.post(
+      "https://api.ocr.space/parse/image",
+      formData,
+      {
+        headers: formData.getHeaders(),
+      }
+    );
+
+    const text =
+      response.data?.ParsedResults?.[0]?.ParsedText || "";
+
+    res.json({ text });
+
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: e.message });
   }
-);
+});
