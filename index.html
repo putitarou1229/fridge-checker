@@ -95,41 +95,41 @@
     <!-- ANALYTICS -->
     <section id="analytics" class="panel">
 
-  <h3>📊 フードロス分析</h3>
+      <h3>📊 フードロス分析</h3>
 
-  <!-- KPI -->
-  <div class="analytics-grid">
+      <!-- KPI -->
+      <div class="analytics-grid">
 
-    <div class="analytics-card">
-      <h4>📦 総食材数</h4>
-      <p id="totalFoods">0</p>
-    </div>
+        <div class="analytics-card">
+          <h4>📦 総食材数</h4>
+          <p id="totalFoods">0</p>
+        </div>
 
-    <div class="analytics-card">
-      <h4>💀 廃棄率</h4>
-      <p id="lossRate">0%</p>
-    </div>
+        <div class="analytics-card">
+          <h4>💀 廃棄率</h4>
+          <p id="lossRate">0%</p>
+        </div>
 
-    <div class="analytics-card">
-      <h4>⚠️ 危険食材</h4>
-      <p id="dangerFoods">0</p>
-    </div>
+        <div class="analytics-card">
+          <h4>⚠️ 危険食材</h4>
+          <p id="dangerFoods">0</p>
+        </div>
 
-  </div>
+      </div>
 
-  <!-- グラフ -->
-  <canvas id="foodChart"></canvas>
+      <!-- グラフ -->
+      <canvas id="foodChart"></canvas>
 
-  <!-- ランキング -->
-  <div class="ranking-card">
+      <!-- ランキング -->
+      <div class="ranking-card">
 
-    <h3>🥇 カテゴリランキング</h3>
+        <h3>🥇 カテゴリランキング</h3>
 
-    <div id="rankingArea"></div>
+        <div id="rankingArea"></div>
 
-  </div>
+      </div>
 
-</section>
+    </section>
     <!-- RECIPES -->
     <section id="recipes" class="panel">
       <h3>🍳 AIレシピ</h3>
@@ -145,49 +145,49 @@
       <p>※OCR連携予定</p>
     </section> -->
 
-    <div id="scan" class="panel">
+    <section id="scan" class="panel">
 
-  <h2>📷 レシートスキャン</h2>
+      <h2>📷 レシートスキャン</h2>
 
-  <input type="file" id="receiptInput" accept="image/*">
+      <input type="file" id="receiptInput" accept="image/*">
 
-  <button id="scanBtn">OCR開始</button>
+      <button id="scanBtn">OCR開始</button>
 
-  <div id="scanStatus"></div>
+      <div id="scanStatus"></div>
 
-  <div id="ocrResult"></div>
+      <div id="ocrResult"></div>
 
-</div>
+      </div>
 
-    <!-- 📱 下タブ -->
-    <nav class="bottom-nav">
+      <!-- 📱 下タブ -->
+      <nav class="bottom-nav">
 
-      <button onclick="switchTab('dashboard')">
-        🏠<span>ホーム</span>
-      </button>
+        <button onclick="switchTab('dashboard')">
+          🏠<span>ホーム</span>
+        </button>
 
-      <button onclick="switchTab('foods')">
-        🥬<span>食材</span>
-      </button>
+        <button onclick="switchTab('foods')">
+          🥬<span>食材</span>
+        </button>
 
-      <button onclick="switchTab('analytics')">
-        📊<span>統計</span>
-      </button>
+        <button onclick="switchTab('analytics')">
+          📊<span>統計</span>
+        </button>
 
-      <button onclick="switchTab('recipes')">
-        🤖<span>AI</span>
-      </button>
+        <button onclick="switchTab('recipes')">
+          🤖<span>AI</span>
+        </button>
 
-      <button onclick="switchTab('scan')">
-        📷<span>Scan</span>
-      </button>
+        <button onclick="switchTab('scan')">
+          📷<span>Scan</span>
+        </button>
 
-    </nav>
+      </nav>
 
   </main>
 
-  <script type="module" src="app.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 
 </html>
