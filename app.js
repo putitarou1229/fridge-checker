@@ -120,10 +120,14 @@ function renderFoods() {
   foods.forEach(food => {
 
     const div = document.createElement("div");
+
     div.innerHTML = `
-      <b>${food.name}</b>
-      <span>${food.amount}</span>
-      <button onclick="deleteFood('${food.id}')">削除</button>
+   <h3>${food.name}</h3>
+   <span>${badge}</span>
+   <p>${food.amount}</p>
+   <p>${food.deadline}</p>
+
+    <button onclick="deleteFood('${food.id}')">削除</button>
     `;
 
     list.appendChild(div);
