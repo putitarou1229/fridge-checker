@@ -1,7 +1,9 @@
 const functions = require("firebase-functions");
 const { onRequest } = require("firebase-functions/v2/https");
+
 const { defineSecret } = require("firebase-functions/params");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+
 const axios = require("axios");
 const FormData = require("form-data");
 
@@ -11,12 +13,14 @@ const FormData = require("form-data");
 const GEMINI_API_KEY = defineSecret("GEMINI_API_KEY");
 
 /* =========================
-   Gemini（レシピ生成）
+   Gemini
 ========================= */
 exports.generateRecipe = onRequest(
   { secrets: [GEMINI_API_KEY] },
   async (req, res) => {
+
     try {
+
       const genAI = new GoogleGenerativeAI(GEMINI_API_KEY.value());
 
       const model = genAI.getGenerativeModel({
@@ -34,49 +38,42 @@ exports.generateRecipe = onRequest(
 
 食材:
 ${ingredients}
-
-レシピ名と簡単な説明をください。
 `;
 
       const result = await model.generateContent(prompt);
       const response = await result.response;
 
-      res.json({
-        text: response.text(),
-      });
+      res.json({ text: response.text() });
 
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: error.message });
+    } catch (e) {
+      res.status(500).json({ error: e.message });
     }
   }
 );
 
 /* =========================
-   OCR（本番版）
-   ※ fileではなく imageUrl方式
+   OCR（1つだけ！）
 ========================= */
 exports.ocr = onRequest(async (req, res) => {
-  try {
-    const imageUrl = req.body.imageUrl;
 
-    if (!imageUrl) {
-      return res.status(400).json({ error: "imageUrlがありません" });
+  try {
+
+    const base64 = req.body.image;
+
+    if (!base64) {
+      return res.status(400).json({ error: "imageがありません" });
     }
 
     const formData = new FormData();
 
-    // OCR.spaceはURL指定が安定
-    formData.append("url", imageUrl);
+    formData.append("base64Image", base64);
     formData.append("apikey", process.env.OCR_API_KEY);
     formData.append("language", "jpn");
 
     const response = await axios.post(
       "https://api.ocr.space/parse/image",
       formData,
-      {
-        headers: formData.getHeaders(),
-      }
+      { headers: formData.getHeaders() }
     );
 
     const text =
@@ -85,7 +82,6 @@ exports.ocr = onRequest(async (req, res) => {
     res.json({ text });
 
   } catch (e) {
-    console.error(e);
     res.status(500).json({ error: e.message });
   }
 });
