@@ -44,3 +44,35 @@ ${ingredients}
     }
   }
 );
+
+// OCR機能//
+exports.ocr = onRequest(
+  async (req, res) => {
+    try {
+      const file = req.body.file;
+
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("apikey", process.env.OCR_API_KEY);
+      formData.append("language", "jpn");
+
+      const response = await fetch(
+        "https://api.ocr.space/parse/image",
+        {
+          method: "POST",
+          body: formData
+        }
+      );
+
+      const data = await response.json();
+
+      const text =
+        data?.ParsedResults?.[0]?.ParsedText || "";
+
+      res.json({ text });
+
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  }
+);
