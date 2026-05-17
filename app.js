@@ -14,10 +14,9 @@ import {
 ========================= */
 
 const firebaseConfig = {
-  apiKey: "AIzaSyB-RHabxjy1Zb5TOsBZfKLtBffq4Aa4Yn4",
+  apiKey: "YOUR_API_KEY",
   authDomain: "fridge-checker-fd18e.firebaseapp.com",
-  projectId: "fridge-checker-fd18e",
-  storageBucket: "fridge-checker-fd18e.appspot.com",
+  projectId: "fridge-checker-fd18e"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -29,15 +28,13 @@ const db = getFirestore(app);
 
 let foods = [];
 let detectedProducts = [];
-let foodChart = null;
+let foodChart;
 
 /* =========================
    DOM
 ========================= */
 
 const foodList = document.getElementById("foodList");
-
-const addBtn = document.getElementById("addBtn");
 
 const receiptInput =
   document.getElementById("receiptInput");
@@ -51,17 +48,8 @@ const scanStatus =
 const ocrResult =
   document.getElementById("ocrResult");
 
-const searchInput =
-  document.getElementById("searchInput");
-
-const filterCategory =
-  document.getElementById("filterCategory");
-
-const recipeBtn =
-  document.getElementById("recipeBtn");
-
 /* =========================
-   タブ切替
+   タブ
 ========================= */
 
 function switchTab(tabId) {
@@ -74,16 +62,13 @@ function switchTab(tabId) {
   document.getElementById(tabId)
     ?.classList.add("active");
 
-  document.querySelectorAll(".tab")
-    .forEach(tab => {
-      tab.classList.remove("active");
-    });
+  document.querySelectorAll(".bottom-nav button")
+    .forEach(btn => {
 
-  document.querySelectorAll(".tab")
-    .forEach(tab => {
+      btn.classList.remove("active");
 
-      if (tab.dataset.tab === tabId) {
-        tab.classList.add("active");
+      if (btn.dataset.tab === tabId) {
+        btn.classList.add("active");
       }
 
     });
@@ -93,36 +78,50 @@ function switchTab(tabId) {
   }
 }
 
-/* グローバル化 */
 window.switchTab = switchTab;
 
-/* 上タブ */
-document.querySelectorAll(".tab")
-  .forEach(btn => {
+/* =========================
+   下タブ
+========================= */
 
-    btn.addEventListener("click", () => {
-      switchTab(btn.dataset.tab);
-    });
-
-  });
-
-/* 下タブ */
 document.querySelectorAll(".bottom-nav button")
   .forEach(btn => {
 
     btn.addEventListener("click", () => {
-      switchTab(btn.dataset.tab);
+
+      const tab = btn.dataset.tab;
+
+      switchTab(tab);
+
     });
 
   });
 
 /* =========================
-   食材追加
+   日数
 ========================= */
 
-addBtn?.addEventListener("click", async () => {
+function getDays(deadline) {
 
-  try {
+  if (!deadline) return 9999;
+
+  const now = new Date();
+  const target = new Date(deadline);
+
+  now.setHours(0,0,0,0);
+  target.setHours(0,0,0,0);
+
+  return Math.ceil(
+    (target - now) / 86400000
+  );
+}
+
+/* =========================
+   追加
+========================= */
+
+document.getElementById("addBtn")
+  ?.addEventListener("click", async () => {
 
     const name =
       document.getElementById("name").value;
@@ -130,13 +129,14 @@ addBtn?.addEventListener("click", async () => {
     const amount =
       document.getElementById("amount").value;
 
-    const category =
-      document.getElementById("category").value;
-
     const deadline =
       document.getElementById("deadline").value;
 
+    const category =
+      document.getElementById("category").value;
+
     if (!name || !amount || !deadline) {
+
       alert("入力してください");
       return;
     }
@@ -154,63 +154,28 @@ addBtn?.addEventListener("click", async () => {
     document.getElementById("deadline").value = "";
 
     loadFoods();
-
-  } catch (e) {
-
-    console.error(e);
-    alert("追加失敗");
-
-  }
-
-});
+  });
 
 /* =========================
-   Firestore読込
+   読み込み
 ========================= */
 
 async function loadFoods() {
 
-  try {
+  const snap =
+    await getDocs(collection(db, "foods"));
 
-    const snap =
-      await getDocs(collection(db, "foods"));
+  foods = snap.docs.map(d => ({
+    id: d.id,
+    ...d.data()
+  }));
 
-    foods = snap.docs.map(d => ({
-      id: d.id,
-      ...d.data()
-    }));
-
-    renderFoods();
-    updateDashboard();
-
-  } catch (e) {
-
-    console.error(e);
-
-  }
+  renderFoods();
+  updateDashboard();
 }
 
 /* =========================
-   日数計算
-========================= */
-
-function getDays(date) {
-
-  if (!date) return 999;
-
-  const now = new Date();
-  const target = new Date(date);
-
-  now.setHours(0, 0, 0, 0);
-  target.setHours(0, 0, 0, 0);
-
-  return Math.ceil(
-    (target - now) / 86400000
-  );
-}
-
-/* =========================
-   食材表示
+   表示
 ========================= */
 
 function renderFoods() {
@@ -220,14 +185,18 @@ function renderFoods() {
   foodList.innerHTML = "";
 
   foods.sort((a, b) =>
-    getDays(a.deadline) - getDays(b.deadline)
+    getDays(a.deadline) -
+    getDays(b.deadline)
   );
 
   const keyword =
-    searchInput?.value?.toLowerCase() || "";
+    document.getElementById("searchInput")
+      ?.value
+      ?.toLowerCase() || "";
 
-  const selectedCategory =
-    filterCategory?.value || "all";
+  const category =
+    document.getElementById("filterCategory")
+      ?.value || "all";
 
   foods.forEach(food => {
 
@@ -237,8 +206,8 @@ function renderFoods() {
     ) return;
 
     if (
-      selectedCategory !== "all" &&
-      food.category !== selectedCategory
+      category !== "all" &&
+      food.category !== category
     ) return;
 
     const days = getDays(food.deadline);
@@ -255,7 +224,6 @@ function renderFoods() {
 
       badge = "⚠️ 3日以内";
       status = "warning";
-
     }
 
     const div = document.createElement("div");
@@ -274,59 +242,53 @@ function renderFoods() {
 
       </div>
 
-      <div class="food-info">
+      <p>数量: ${food.amount}</p>
 
-        <p>数量: ${food.amount}</p>
+      <p>
+        消費期限:
+        ${food.deadline || "未設定"}
+      </p>
 
-        <p>カテゴリ: ${food.category}</p>
+      <p>
+        カテゴリ:
+        ${food.category}
+      </p>
 
-        <p>期限: ${food.deadline || "未設定"}</p>
-
-        <p>残り: ${days}日</p>
-
-      </div>
-
-      <button onclick="deleteFood('${food.id}')">
+      <button
+        class="delete-btn"
+        data-id="${food.id}"
+      >
         削除
       </button>
     `;
 
     foodList.appendChild(div);
-
   });
+
+  bindDeleteButtons();
 }
-
-/* =========================
-   検索
-========================= */
-
-searchInput?.addEventListener("input", () => {
-  renderFoods();
-});
-
-filterCategory?.addEventListener("change", () => {
-  renderFoods();
-});
 
 /* =========================
    削除
 ========================= */
 
-window.deleteFood = async function (id) {
+function bindDeleteButtons() {
 
-  try {
+  document.querySelectorAll(".delete-btn")
+    .forEach(btn => {
 
-    await deleteDoc(doc(db, "foods", id));
+      btn.addEventListener("click", async () => {
 
-    loadFoods();
+        const id = btn.dataset.id;
 
-  } catch (e) {
+        await deleteDoc(doc(db, "foods", id));
 
-    console.error(e);
+        loadFoods();
 
-  }
+      });
 
-};
+    });
+}
 
 /* =========================
    Dashboard
@@ -334,38 +296,28 @@ window.deleteFood = async function (id) {
 
 function updateDashboard() {
 
-  let danger = 0;
-  let warning = 0;
   let safe = 0;
+  let warning = 0;
+  let danger = 0;
 
   foods.forEach(food => {
 
     const d = getDays(food.deadline);
 
-    if (d < 0) {
-
-      danger++;
-
-    } else if (d <= 3) {
-
-      warning++;
-
-    } else {
-
-      safe++;
-
-    }
+    if (d < 0) danger++;
+    else if (d <= 3) warning++;
+    else safe++;
 
   });
 
-  document.getElementById("dangerCount")
-    .textContent = danger;
+  document.getElementById("safeCount")
+    .textContent = safe;
 
   document.getElementById("warningCount")
     .textContent = warning;
 
-  document.getElementById("safeCount")
-    .textContent = safe;
+  document.getElementById("dangerCount")
+    .textContent = danger;
 }
 
 /* =========================
@@ -387,6 +339,7 @@ function updateAnalytics() {
       const d = getDays(f.deadline);
 
       return d >= 0 && d <= 3;
+
     });
 
   const safe =
@@ -404,7 +357,7 @@ function updateAnalytics() {
     total === 0
       ? 0
       : Math.round(
-          (expired.length / total) * 100
+          expired.length / total * 100
         );
 
   document.getElementById("lossRate")
@@ -420,24 +373,19 @@ function updateAnalytics() {
   }
 
   foodChart = new Chart(ctx, {
-
     type: "doughnut",
-
     data: {
-
       labels: [
         "期限切れ",
         "3日以内",
         "安全"
       ],
-
       datasets: [{
         data: [
           expired.length,
           warning.length,
           safe.length
         ],
-
         backgroundColor: [
           "#f44336",
           "#ff9800",
@@ -445,70 +393,69 @@ function updateAnalytics() {
         ]
       }]
     }
-
   });
 
-  const rankingArea =
-    document.getElementById("rankingArea");
-
-  if (!rankingArea) return;
-
-  const map = {};
-
-  foods.forEach(food => {
-
-    const cat =
-      food.category || "その他";
-
-    map[cat] =
-      (map[cat] || 0) + 1;
-
-  });
-
-  rankingArea.innerHTML =
-    Object.entries(map)
-      .sort((a, b) => b[1] - a[1])
-      .map((r, i) => `
-        <div>
-          ${i + 1}位 :
-          ${r[0]}
-          (${r[1]})
-        </div>
-      `)
-      .join("");
+  renderRanking();
 }
 
 /* =========================
-   AIレシピ
+   ランキング
 ========================= */
 
-recipeBtn?.addEventListener("click", async () => {
+function renderRanking() {
 
-  try {
+  const area =
+    document.getElementById("rankingArea");
 
-    const ingredients =
-      document.getElementById("ingredients")
+  if (!area) return;
+
+  const counts = {};
+
+  foods.forEach(food => {
+
+    counts[food.category] =
+      (counts[food.category] || 0) + 1;
+
+  });
+
+  const sorted =
+    Object.entries(counts)
+      .sort((a, b) => b[1] - a[1]);
+
+  area.innerHTML = sorted.map(([k, v]) => `
+    <div class="rank-item">
+      ${k} : ${v}件
+    </div>
+  `).join("");
+}
+
+/* =========================
+   AI Recipe
+========================= */
+
+window.getRecipe = async function() {
+
+  const ing =
+    document.getElementById("ingredients")
       ?.value;
 
-    if (!ingredients) {
-      alert("食材を入力");
-      return;
-    }
+  if (!ing) {
 
-    document.getElementById("recipeResult")
-      .innerHTML = "生成中...";
+    alert("食材を入力");
+    return;
+  }
+
+  try {
 
     const res = await fetch(
       "https://generaterecipe-nqod4cxoqq-uc.a.run.app",
       {
         method: "POST",
-
         headers: {
           "Content-Type": "application/json"
         },
-
         body: JSON.stringify({
-          ingredients
+          ingredients: ing
         })
       }
     );
@@ -517,19 +464,75 @@ recipeBtn?.addEventListener("click", async () => {
 
     document.getElementById("recipeResult")
       .innerHTML = `
-        <pre>${data.text || "生成失敗"}</pre>
+        <pre>${data.text}</pre>
       `;
 
   } catch (e) {
 
     console.error(e);
 
-    document.getElementById("recipeResult")
-      .innerHTML = "エラー";
-
+    alert("AIエラー");
   }
+};
 
-});
+/* =========================
+   OCR期限DB
+========================= */
+
+const foodDB = {
+  "牛乳": 7,
+  "卵": 14,
+  "納豆": 5,
+  "レタス": 4,
+  "たまねぎ": 30,
+  "ニンジン": 14,
+  "牛肉": 3
+};
+
+/* =========================
+   OCRノイズ
+========================= */
+
+const ignoreWords = [
+  "お預り","お預かり","お釣り","おつり",
+  "合計","小計","税込","消費税",
+  "現金","カード","TEL","営業時間",
+  "レジ","マーケット","No","No.","TOTAL"
+];
+
+/* =========================
+   金額判定
+========================= */
+
+function isPriceLike(line) {
+
+  return (
+    /[¥\\Y′]/.test(line) ||
+    /^\d+$/.test(line) ||
+    /\d{2,}/.test(line) ||
+    /^[A-Za-z′\\¥]{0,3}\d+$/.test(line)
+  );
+}
+
+/* =========================
+   OCR期限
+========================= */
+
+function getOCRDeadline(name) {
+
+  const days =
+    foodDB[name] || 3;
+
+  const date = new Date();
+
+  date.setDate(
+    date.getDate() + days
+  );
+
+  return date
+    .toISOString()
+    .split("T")[0];
+}
 
 /* =========================
    OCR
@@ -537,18 +540,19 @@ recipeBtn?.addEventListener("click", async () => {
 
 scanBtn?.addEventListener("click", async () => {
 
+  const file =
+    receiptInput?.files[0];
+
+  if (!file) {
+
+    alert("画像を選択してください");
+    return;
+  }
+
+  scanStatus.textContent =
+    "OCR実行中...";
+
   try {
-
-    const file =
-      receiptInput?.files?.[0];
-
-    if (!file) {
-      alert("画像を選択してください");
-      return;
-    }
-
-    scanStatus.textContent =
-      "OCR実行中...";
 
     const reader = new FileReader();
 
@@ -556,18 +560,16 @@ scanBtn?.addEventListener("click", async () => {
 
       try {
 
-        const base64 =
-          reader.result;
+        const base64 = reader.result;
 
         const res = await fetch(
           "https://us-central1-fridge-checker-fd18e.cloudfunctions.net/ocr",
           {
             method: "POST",
-
             headers: {
-              "Content-Type": "application/json"
+              "Content-Type":
+                "application/json"
             },
-
             body: JSON.stringify({
               image: base64
             })
@@ -579,37 +581,37 @@ scanBtn?.addEventListener("click", async () => {
         const text =
           data.text || "";
 
-        const lines =
-          text
-            .split("\n")
-            .map(l =>
-              l.replace(/\s+/g, "")
-            )
-            .filter(Boolean);
+        const lines = text
+          .split("\n")
+          .map(l =>
+            l.replace(/\s+/g, "").trim()
+          )
+          .filter(l => l);
 
-        const ignore = [
-          "合計",
-          "税込",
-          "TEL",
-          "現金",
-          "No",
-          "レジ"
-        ];
+        detectedProducts = [...new Set(
+          lines.filter(line =>
+            line.length > 1 &&
+            !ignoreWords.some(w =>
+              line.includes(w)
+            ) &&
+            !isPriceLike(line)
+          )
+        )];
 
-        detectedProducts =
-          [...new Set(
-            lines.filter(l =>
-              l.length > 1 &&
-              !ignore.some(w =>
-                l.includes(w)
-              )
-            )
-          )];
+        if (
+          detectedProducts.length === 0
+        ) {
 
-        renderScan();
+          scanStatus.textContent =
+            "商品なし";
+
+          return;
+        }
 
         scanStatus.textContent =
-          "OCR完了";
+          `${detectedProducts.length}件検出`;
+
+        renderOCRResult();
 
       } catch (e) {
 
@@ -617,9 +619,7 @@ scanBtn?.addEventListener("click", async () => {
 
         scanStatus.textContent =
           "OCR失敗";
-
       }
-
     };
 
     reader.readAsDataURL(file);
@@ -628,85 +628,134 @@ scanBtn?.addEventListener("click", async () => {
 
     console.error(e);
 
+    scanStatus.textContent =
+      "OCR失敗";
   }
-
 });
 
 /* =========================
-   OCR結果表示
+   OCR表示
 ========================= */
 
-function renderScan() {
-
-  if (!ocrResult) return;
+function renderOCRResult() {
 
   ocrResult.innerHTML = `
 
-    <h3>検出結果</h3>
+    <h3>検出商品</h3>
 
-    <button onclick="checkAll(true)">
+    <button id="checkAllBtn">
       全選択
     </button>
 
-    <button onclick="checkAll(false)">
+    <button id="uncheckAllBtn">
       全解除
     </button>
 
-    <button onclick="saveSelected()">
+    <button id="saveSelectedBtn">
       保存
     </button>
 
     <br><br>
 
-    ${detectedProducts.map((p, i) => `
+    ${detectedProducts.map((p, i) => {
 
-      <div>
+      const deadline =
+        getOCRDeadline(p);
 
-        <input
-          type="checkbox"
-          id="c${i}"
-          checked
-        >
+      return `
 
-        <b>${p}</b>
+        <div class="ocr-item">
 
-        <input
-          type="number"
-          id="q${i}"
-          value="1"
-          min="1"
-        >
+          <label>
 
-      </div>
+            <input
+              type="checkbox"
+              id="ocr-check-${i}"
+              checked
+            >
 
-    `).join("")}
+            <strong>${p}</strong>
+
+          </label>
+
+          <br>
+
+          数量:
+          <input
+            type="number"
+            id="ocr-qty-${i}"
+            value="1"
+            min="1"
+          >
+
+          <br>
+
+          期限:
+          <input
+            type="date"
+            id="ocr-deadline-${i}"
+            value="${deadline}"
+          >
+
+        </div>
+
+      `;
+
+    }).join("")}
   `;
+
+  bindOCRButtons();
 }
 
 /* =========================
-   OCR全選択
+   OCRボタン
 ========================= */
 
-window.checkAll = function (flag) {
+function bindOCRButtons() {
+
+  document.getElementById("checkAllBtn")
+    ?.addEventListener("click", () => {
+
+      toggleOCRAll(true);
+
+    });
+
+  document.getElementById("uncheckAllBtn")
+    ?.addEventListener("click", () => {
+
+      toggleOCRAll(false);
+
+    });
+
+  document.getElementById("saveSelectedBtn")
+    ?.addEventListener("click", saveOCRSelected);
+}
+
+/* =========================
+   OCR全操作
+========================= */
+
+function toggleOCRAll(flag) {
 
   detectedProducts.forEach((_, i) => {
 
     const el =
-      document.getElementById(`c${i}`);
+      document.getElementById(
+        `ocr-check-${i}`
+      );
 
     if (el) {
       el.checked = flag;
     }
 
   });
-
-};
+}
 
 /* =========================
    OCR保存
 ========================= */
 
-window.saveSelected = async function () {
+async function saveOCRSelected() {
 
   let count = 0;
 
@@ -717,41 +766,56 @@ window.saveSelected = async function () {
   ) {
 
     const checked =
-      document.getElementById(`c${i}`);
+      document.getElementById(
+        `ocr-check-${i}`
+      );
 
     if (!checked?.checked) continue;
 
     const qty =
-      document.getElementById(`q${i}`);
+      document.getElementById(
+        `ocr-qty-${i}`
+      )?.value || 1;
+
+    const deadline =
+      document.getElementById(
+        `ocr-deadline-${i}`
+      )?.value;
 
     await addDoc(collection(db, "foods"), {
-
       name: detectedProducts[i],
-
-      amount: qty?.value || 1,
-
+      amount: qty,
       category: "OCR",
-
-      deadline: "",
-
+      deadline,
       createdAt: Date.now()
-
     });
 
     count++;
   }
 
-  alert(`${count}件追加`);
+  alert(`${count}件追加しました`);
 
   detectedProducts = [];
 
-  renderScan();
+  ocrResult.innerHTML = "";
 
   loadFoods();
-};
+}
+
+/* =========================
+   検索
+========================= */
+
+document.getElementById("searchInput")
+  ?.addEventListener("input", renderFoods);
+
+document.getElementById("filterCategory")
+  ?.addEventListener("change", renderFoods);
 
 /* =========================
    初期化
 ========================= */
 
 loadFoods();
+
+switchTab("dashboard");
