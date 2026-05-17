@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <title>Fridge SaaS</title>
 
   <link rel="stylesheet" href="style.css" />
@@ -14,24 +15,42 @@
 
 <body>
 
+  <!-- HEADER -->
   <header class="topbar">
     <h1>🥬 Fridge SaaS</h1>
     <span id="plan">Free</span>
   </header>
 
-  <!-- TAB NAV（onclick廃止） -->
+  <!-- TOP TABS
   <nav class="tabs">
-    <button class="tab active" data-tab="dashboard">Dashboard</button>
-    <button class="tab" data-tab="foods">Foods</button>
-    <button class="tab" data-tab="analytics">Analytics</button>
-    <button class="tab" data-tab="recipes">Recipes</button>
-    <button class="tab" data-tab="scan">Scan</button>
-  </nav>
+
+    <button class="tab active" data-tab="dashboard">
+      Dashboard
+    </button>
+
+    <button class="tab" data-tab="foods">
+      Foods
+    </button>
+
+    <button class="tab" data-tab="analytics">
+      Analytics
+    </button>
+
+    <button class="tab" data-tab="recipes">
+      Recipes
+    </button>
+
+    <button class="tab" data-tab="scan">
+      Scan
+    </button>
+
+  </nav> -->
 
   <main class="container">
 
     <!-- DASHBOARD -->
     <section id="dashboard" class="panel active">
+
       <div class="kpi-grid">
 
         <div class="kpi-card danger-card">
@@ -50,48 +69,64 @@
         </div>
 
       </div>
+
     </section>
 
     <!-- FOODS -->
     <section id="foods" class="panel">
+
       <div class="form">
+
         <input id="name" placeholder="食材名">
+
         <input id="amount" type="number" placeholder="数量">
 
         <select id="category">
+
           <option value="野菜">🥬 野菜</option>
           <option value="肉">🥩 肉</option>
           <option value="魚">🐟 魚</option>
           <option value="乳製品">🥛 乳製品</option>
           <option value="飲み物">🥤 飲み物</option>
           <option value="その他">📦 その他</option>
+
         </select>
 
         <input id="deadline" type="date">
-        <button id="addBtn">追加</button>
+
+        <button id="addBtn">
+          追加
+        </button>
+
       </div>
 
       <div class="search-area">
+
         <input id="searchInput" placeholder="🔍 食材検索">
 
         <select id="filterCategory">
+
           <option value="all">すべて</option>
+
           <option value="野菜">🥬 野菜</option>
           <option value="肉">🥩 肉</option>
           <option value="魚">🐟 魚</option>
           <option value="乳製品">🥛 乳製品</option>
           <option value="飲み物">🥤 飲み物</option>
           <option value="その他">📦 その他</option>
+
         </select>
+
       </div>
 
       <div id="foodList"></div>
+
     </section>
 
     <!-- ANALYTICS -->
     <section id="analytics" class="panel">
 
-      <h3>📊 フードロス分析</h3>
+      <h2>📊 フードロス分析</h2>
 
       <div class="analytics-grid">
 
@@ -115,49 +150,87 @@
       <canvas id="foodChart"></canvas>
 
       <div class="ranking-card">
+
         <h3>🥇 カテゴリランキング</h3>
+
         <div id="rankingArea"></div>
+
       </div>
 
     </section>
 
     <!-- RECIPES -->
     <section id="recipes" class="panel">
-      <h3>🍳 AIレシピ</h3>
 
-      <textarea id="ingredients" placeholder="食材を入力"></textarea>
-      <button id="recipeBtn">生成</button>
+      <h2>🍳 AIレシピ</h2>
+
+      <textarea
+        id="ingredients"
+        placeholder="食材を入力"
+      ></textarea>
+
+      <button id="recipeBtn">
+        レシピ生成
+      </button>
 
       <div id="recipeResult"></div>
+
     </section>
 
-    <!-- SCAN（Storageなし版） -->
+    <!-- SCAN -->
     <section id="scan" class="panel">
 
       <h2>📷 レシートスキャン</h2>
 
-      <input type="file" id="receiptInput" accept="image/*">
-      <button id="scanBtn">OCR開始</button>
+      <input
+        type="file"
+        id="receiptInput"
+        accept="image/*"
+      >
+
+      <button id="scanBtn">
+        OCR開始
+      </button>
 
       <div id="scanStatus"></div>
+
       <div id="ocrResult"></div>
 
     </section>
 
   </main>
 
-  <!-- bottom nav（onclick廃止） -->
+  <!-- BOTTOM NAV -->
   <nav class="bottom-nav">
-    <button data-tab="dashboard">🏠<span>ホーム</span></button>
-    <button data-tab="foods">🥬<span>食材</span></button>
-    <button data-tab="analytics">📊<span>統計</span></button>
-    <button data-tab="recipes">🤖<span>AI</span></button>
-    <button data-tab="scan">📷<span>Scan</span></button>
+
+    <button data-tab="dashboard">
+      🏠
+      <span>ホーム</span>
+    </button>
+
+    <button data-tab="foods">
+      🥬
+      <span>食材</span>
+    </button>
+
+    <button data-tab="analytics">
+      📊
+      <span>統計</span>
+    </button>
+
+    <button data-tab="recipes">
+      🤖
+      <span>AI</span>
+    </button>
+
+    <button data-tab="scan">
+      📷
+      <span>Scan</span>
+    </button>
+
   </nav>
 
-  <!-- app -->
   <script type="module" src="app.js"></script>
 
 </body>
-
 </html>
