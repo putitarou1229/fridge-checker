@@ -34,7 +34,8 @@ let foodChart;
    DOM
 ========================= */
 
-const foodList = document.getElementById("foodList");
+const foodList =
+  document.getElementById("foodList");
 
 const receiptInput =
   document.getElementById("receiptInput");
@@ -210,7 +211,8 @@ function renderFoods() {
       food.category !== category
     ) return;
 
-    const days = getDays(food.deadline);
+    const days =
+      getDays(food.deadline);
 
     let badge = "🥬 安全";
     let status = "safe";
@@ -226,7 +228,8 @@ function renderFoods() {
       status = "warning";
     }
 
-    const div = document.createElement("div");
+    const div =
+      document.createElement("div");
 
     div.className =
       `food-card ${status}`;
@@ -263,6 +266,7 @@ function renderFoods() {
     `;
 
     foodList.appendChild(div);
+
   });
 
   bindDeleteButtons();
@@ -281,7 +285,9 @@ function bindDeleteButtons() {
 
         const id = btn.dataset.id;
 
-        await deleteDoc(doc(db, "foods", id));
+        await deleteDoc(
+          doc(db, "foods", id)
+        );
 
         loadFoods();
 
@@ -302,7 +308,8 @@ function updateDashboard() {
 
   foods.forEach(food => {
 
-    const d = getDays(food.deadline);
+    const d =
+      getDays(food.deadline);
 
     if (d < 0) danger++;
     else if (d <= 3) warning++;
@@ -326,7 +333,8 @@ function updateDashboard() {
 
 function updateAnalytics() {
 
-  const total = foods.length;
+  const total =
+    foods.length;
 
   const expired =
     foods.filter(f =>
@@ -336,7 +344,8 @@ function updateAnalytics() {
   const warning =
     foods.filter(f => {
 
-      const d = getDays(f.deadline);
+      const d =
+        getDays(f.deadline);
 
       return d >= 0 && d <= 3;
 
@@ -357,11 +366,13 @@ function updateAnalytics() {
     total === 0
       ? 0
       : Math.round(
-          expired.length / total * 100
+          expired.length /
+          total * 100
         );
 
   document.getElementById("lossRate")
-    .textContent = `${lossRate}%`;
+    .textContent =
+      `${lossRate}%`;
 
   const ctx =
     document.getElementById("foodChart");
@@ -373,24 +384,31 @@ function updateAnalytics() {
   }
 
   foodChart = new Chart(ctx, {
+
     type: "doughnut",
+
     data: {
+
       labels: [
         "期限切れ",
         "3日以内",
         "安全"
       ],
+
       datasets: [{
+
         data: [
           expired.length,
           warning.length,
           safe.length
         ],
+
         backgroundColor: [
           "#f44336",
           "#ff9800",
           "#4caf50"
         ]
+
       }]
     }
   });
@@ -422,11 +440,12 @@ function renderRanking() {
     Object.entries(counts)
       .sort((a, b) => b[1] - a[1]);
 
-  area.innerHTML = sorted.map(([k, v]) => `
-    <div class="rank-item">
-      ${k} : ${v}件
-    </div>
-  `).join("");
+  area.innerHTML =
+    sorted.map(([k, v]) => `
+      <div class="rank-item">
+        ${k} : ${v}件
+      </div>
+    `).join("");
 }
 
 /* =========================
@@ -452,7 +471,8 @@ window.getRecipe = async function() {
       {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type":
+            "application/json"
         },
         body: JSON.stringify({
           ingredients: ing
@@ -460,7 +480,8 @@ window.getRecipe = async function() {
       }
     );
 
-    const data = await res.json();
+    const data =
+      await res.json();
 
     document.getElementById("recipeResult")
       .innerHTML = `
@@ -480,6 +501,7 @@ window.getRecipe = async function() {
 ========================= */
 
 const foodDB = {
+
   "牛乳": 7,
   "卵": 14,
   "納豆": 5,
@@ -487,6 +509,7 @@ const foodDB = {
   "たまねぎ": 30,
   "ニンジン": 14,
   "牛肉": 3
+
 };
 
 /* =========================
@@ -494,10 +517,25 @@ const foodDB = {
 ========================= */
 
 const ignoreWords = [
-  "お預り","お預かり","お釣り","おつり",
-  "合計","小計","税込","消費税",
-  "現金","カード","TEL","営業時間",
-  "レジ","マーケット","No","No.","TOTAL"
+
+  "お預り",
+  "お預かり",
+  "お釣り",
+  "おつり",
+  "合計",
+  "小計",
+  "税込",
+  "消費税",
+  "現金",
+  "カード",
+  "TEL",
+  "営業時間",
+  "レジ",
+  "マーケット",
+  "No",
+  "No.",
+  "TOTAL"
+
 ];
 
 /* =========================
@@ -507,11 +545,71 @@ const ignoreWords = [
 function isPriceLike(line) {
 
   return (
+
     /[¥\\Y′]/.test(line) ||
+
     /^\d+$/.test(line) ||
+
     /\d{2,}/.test(line) ||
+
     /^[A-Za-z′\\¥]{0,3}\d+$/.test(line)
+
   );
+}
+
+/* =========================
+   OCRノイズ除去
+========================= */
+
+function isGarbage(line) {
+
+  if (line.length <= 1) {
+    return true;
+  }
+
+  if (
+    /^[^ぁ-んァ-ヶ一-龠a-zA-Z0-9]+$/.test(line)
+  ) {
+    return true;
+  }
+
+  if (
+    /^[Pp]?\d{6,}$/.test(line)
+  ) {
+    return true;
+  }
+
+  if (
+    /^外\d+$/.test(line)
+  ) {
+    return true;
+  }
+
+  if (
+    /^[一-龠]\d+$/.test(line)
+  ) {
+    return true;
+  }
+
+  if (
+    /^[A-Za-z0-9]+$/.test(line)
+  ) {
+    return true;
+  }
+
+  if (
+    /^[ァ-ヶ][一-龠]$/.test(line)
+  ) {
+    return true;
+  }
+
+  if (
+    /^[一-龠]{1,2}$/.test(line)
+  ) {
+    return true;
+  }
+
+  return false;
 }
 
 /* =========================
@@ -554,64 +652,147 @@ scanBtn?.addEventListener("click", async () => {
 
   try {
 
-    const reader = new FileReader();
+    const reader =
+      new FileReader();
 
     reader.onload = async () => {
 
       try {
 
-        const base64 = reader.result;
+        const img =
+          new Image();
 
-        const res = await fetch(
-          "https://us-central1-fridge-checker-fd18e.cloudfunctions.net/ocr",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type":
-                "application/json"
-            },
-            body: JSON.stringify({
-              image: base64
-            })
+        img.onload = async () => {
+
+          try {
+
+            const canvas =
+              document.createElement("canvas");
+
+            const maxWidth = 1200;
+
+            const scale =
+              maxWidth / img.width;
+
+            canvas.width =
+              maxWidth;
+
+            canvas.height =
+              img.height * scale;
+
+            const ctx =
+              canvas.getContext("2d");
+
+            ctx.drawImage(
+              img,
+              0,
+              0,
+              canvas.width,
+              canvas.height
+            );
+
+            const compressedBase64 =
+              canvas.toDataURL(
+                "image/jpeg",
+                0.9
+              );
+
+            console.log(
+              "base64 size:",
+              compressedBase64.length
+            );
+
+            const res = await fetch(
+              "https://us-central1-fridge-checker-fd18e.cloudfunctions.net/ocr",
+              {
+                method: "POST",
+
+                headers: {
+                  "Content-Type":
+                    "application/json"
+                },
+
+                body: JSON.stringify({
+                  image:
+                    compressedBase64
+                })
+              }
+            );
+
+            const data =
+              await res.json();
+
+            console.log(data);
+
+            const text =
+              data.text || "";
+
+            const lines = text
+              .split("\n")
+              .map(line =>
+                line
+                  .replace(/\s+/g, "")
+                  .trim()
+              )
+              .filter(line => line);
+
+            detectedProducts =
+              [...new Set(
+
+                lines.filter(line =>
+
+                  line.length > 1 &&
+
+                  !ignoreWords.some(word =>
+                    line.includes(word)
+                  ) &&
+
+                  !isPriceLike(line) &&
+
+                  !isGarbage(line)
+
+                )
+
+              )];
+
+            console.log(
+              "検出:",
+              detectedProducts
+            );
+
+            if (
+              detectedProducts.length === 0
+            ) {
+
+              scanStatus.textContent =
+                "商品を検出できませんでした";
+
+              ocrResult.innerHTML = `
+                <p>
+                  OCR精度不足です。
+                  明るい場所で真上から撮影してください。
+                </p>
+              `;
+
+              return;
+            }
+
+            scanStatus.textContent =
+              `${detectedProducts.length}件検出`;
+
+            renderOCRResult();
+
+          } catch (e) {
+
+            console.error(e);
+
+            scanStatus.textContent =
+              "OCR失敗";
           }
-        );
+        };
 
-        const data = await res.json();
-
-        const text =
-          data.text || "";
-
-        const lines = text
-          .split("\n")
-          .map(l =>
-            l.replace(/\s+/g, "").trim()
-          )
-          .filter(l => l);
-
-        detectedProducts = [...new Set(
-          lines.filter(line =>
-            line.length > 1 &&
-            !ignoreWords.some(w =>
-              line.includes(w)
-            ) &&
-            !isPriceLike(line)
-          )
-        )];
-
-        if (
-          detectedProducts.length === 0
-        ) {
-
-          scanStatus.textContent =
-            "商品なし";
-
-          return;
-        }
-
-        scanStatus.textContent =
-          `${detectedProducts.length}件検出`;
-
-        renderOCRResult();
+        img.src =
+          reader.result;
 
       } catch (e) {
 
@@ -728,7 +909,10 @@ function bindOCRButtons() {
     });
 
   document.getElementById("saveSelectedBtn")
-    ?.addEventListener("click", saveOCRSelected);
+    ?.addEventListener(
+      "click",
+      saveOCRSelected
+    );
 }
 
 /* =========================
@@ -782,13 +966,21 @@ async function saveOCRSelected() {
         `ocr-deadline-${i}`
       )?.value;
 
-    await addDoc(collection(db, "foods"), {
-      name: detectedProducts[i],
-      amount: qty,
-      category: "OCR",
-      deadline,
-      createdAt: Date.now()
-    });
+    await addDoc(
+      collection(db, "foods"),
+      {
+        name:
+          detectedProducts[i],
+
+        amount: qty,
+
+        category: "OCR",
+
+        deadline,
+
+        createdAt: Date.now()
+      }
+    );
 
     count++;
   }
@@ -807,10 +999,16 @@ async function saveOCRSelected() {
 ========================= */
 
 document.getElementById("searchInput")
-  ?.addEventListener("input", renderFoods);
+  ?.addEventListener(
+    "input",
+    renderFoods
+  );
 
 document.getElementById("filterCategory")
-  ?.addEventListener("change", renderFoods);
+  ?.addEventListener(
+    "change",
+    renderFoods
+  );
 
 /* =========================
    初期化
