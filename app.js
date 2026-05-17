@@ -557,60 +557,6 @@ function isPriceLike(line) {
   );
 }
 
-/* =========================
-   OCRノイズ除去
-========================= */
-
-function isGarbage(line) {
-
-  if (line.length <= 1) {
-    return true;
-  }
-
-  if (
-    /^[^ぁ-んァ-ヶ一-龠a-zA-Z0-9]+$/.test(line)
-  ) {
-    return true;
-  }
-
-  if (
-    /^[Pp]?\d{6,}$/.test(line)
-  ) {
-    return true;
-  }
-
-  if (
-    /^外\d+$/.test(line)
-  ) {
-    return true;
-  }
-
-  if (
-    /^[一-龠]\d+$/.test(line)
-  ) {
-    return true;
-  }
-
-  if (
-    /^[A-Za-z0-9]+$/.test(line)
-  ) {
-    return true;
-  }
-
-  if (
-    /^[ァ-ヶ][一-龠]$/.test(line)
-  ) {
-    return true;
-  }
-
-  if (
-    /^[一-龠]{1,2}$/.test(line)
-  ) {
-    return true;
-  }
-
-  return false;
-}
 
 /* =========================
    OCR期限
@@ -632,8 +578,9 @@ function getOCRDeadline(name) {
     .split("T")[0];
 }
 
+
 /* =========================
-   OCR
+   OCR改善版
 ========================= */
 
 scanBtn?.addEventListener("click", async () => {
@@ -649,6 +596,8 @@ scanBtn?.addEventListener("click", async () => {
 
   scanStatus.textContent =
     "OCR実行中...";
+
+  ocrResult.innerHTML = "";
 
   try {
 
@@ -666,22 +615,42 @@ scanBtn?.addEventListener("click", async () => {
 
           try {
 
+            /* =========================
+               画像補正
+            ========================= */
+
             const canvas =
               document.createElement("canvas");
 
-            const maxWidth = 1200;
+            const maxWidth = 1400;
 
             const scale =
-              maxWidth / img.width;
+              Math.min(
+                1,
+                maxWidth / img.width
+              );
 
             canvas.width =
-              maxWidth;
+              img.width * scale;
 
             canvas.height =
               img.height * scale;
 
             const ctx =
               canvas.getContext("2d");
+
+            /* 白背景 */
+            ctx.fillStyle = "#fff";
+
+            ctx.fillRect(
+              0,
+              0,
+              canvas.width,
+              canvas.height
+            );
+
+            /* 滑らか */
+            ctx.imageSmoothingEnabled = true;
 
             ctx.drawImage(
               img,
@@ -691,16 +660,61 @@ scanBtn?.addEventListener("click", async () => {
               canvas.height
             );
 
+            /* 軽い明度補正 */
+            const imageData =
+              ctx.getImageData(
+                0,
+                0,
+                canvas.width,
+                canvas.height
+              );
+
+            const data =
+              imageData.data;
+
+            for (
+              let i = 0;
+              i < data.length;
+              i += 4
+            ) {
+
+              const avg =
+                (
+                  data[i] +
+                  data[i + 1] +
+                  data[i + 2]
+                ) / 3;
+
+              const value =
+                avg > 140
+                  ? 255
+                  : avg;
+
+              data[i] = value;
+              data[i + 1] = value;
+              data[i + 2] = value;
+            }
+
+            ctx.putImageData(
+              imageData,
+              0,
+              0
+            );
+
             const compressedBase64 =
               canvas.toDataURL(
                 "image/jpeg",
-                0.9
+                0.95
               );
 
             console.log(
               "base64 size:",
               compressedBase64.length
             );
+
+            /* =========================
+               OCR API
+            ========================= */
 
             const res = await fetch(
               "https://us-central1-fridge-checker-fd18e.cloudfunctions.net/ocr",
@@ -719,15 +733,21 @@ scanBtn?.addEventListener("click", async () => {
               }
             );
 
-            const data =
+            const dataRes =
               await res.json();
 
-            console.log(data);
+            console.log(dataRes);
 
             const text =
-              data.text || "";
+              dataRes.text || "";
 
-            const lines = text
+            console.log(text);
+
+            /* =========================
+               OCR解析
+            ========================= */
+
+            let lines = text
               .split("\n")
               .map(line =>
                 line
@@ -736,29 +756,123 @@ scanBtn?.addEventListener("click", async () => {
               )
               .filter(line => line);
 
+            /* =========================
+               合計以降カット
+            ========================= */
+
+            const stopWords = [
+
+              "合計",
+              "小計",
+              "税込",
+              "税額",
+              "現金",
+              "お預り",
+              "お釣り",
+              "クレジット",
+              "CARD"
+
+            ];
+
+            const cutIndex =
+              lines.findIndex(line =>
+                stopWords.some(word =>
+                  line.includes(word)
+                )
+              );
+
+            if (cutIndex !== -1) {
+
+              lines =
+                lines.slice(0, cutIndex);
+
+            }
+
+            console.log(
+              "商品候補:",
+              lines
+            );
+
+            /* =========================
+               OCRフィルタ
+            ========================= */
+
             detectedProducts =
               [...new Set(
 
-                lines.filter(line =>
+                lines.filter(line => {
 
-                  line.length > 1 &&
+                  /* 短すぎ */
+                  if (
+                    line.length < 3
+                  ) {
+                    return false;
+                  }
 
-                  !ignoreWords.some(word =>
-                    line.includes(word)
-                  ) &&
+                  /* 金額 */
+                  if (
+                    isPriceLike(line)
+                  ) {
+                    return false;
+                  }
 
-                  !isPriceLike(line) &&
+                  /* ゴミ */
+                  if (
+                    isGarbage(line)
+                  ) {
+                    return false;
+                  }
 
-                  !isGarbage(line)
+                  /* 無視ワード */
+                  if (
+                    ignoreWords.some(word =>
+                      line.includes(word)
+                    )
+                  ) {
+                    return false;
+                  }
 
-                )
+                  /* 数字多すぎ */
+                  const numberCount =
+                    (
+                      line.match(/\d/g) || []
+                    ).length;
+
+                  if (
+                    numberCount >=
+                    line.length / 2
+                  ) {
+                    return false;
+                  }
+
+                  /* 記号多すぎ */
+                  const symbolCount =
+                    (
+                      line.match(
+                        /[()（）\/¥.,]/g
+                      ) || []
+                    ).length;
+
+                  if (
+                    symbolCount >= 3
+                  ) {
+                    return false;
+                  }
+
+                  return true;
+
+                })
 
               )];
 
             console.log(
-              "検出:",
+              "検出結果:",
               detectedProducts
             );
+
+            /* =========================
+               商品なし
+            ========================= */
 
             if (
               detectedProducts.length === 0
@@ -769,8 +883,8 @@ scanBtn?.addEventListener("click", async () => {
 
               ocrResult.innerHTML = `
                 <p>
-                  OCR精度不足です。
-                  明るい場所で真上から撮影してください。
+                  レシートを真上から
+                  撮影してください
                 </p>
               `;
 
@@ -813,6 +927,97 @@ scanBtn?.addEventListener("click", async () => {
       "OCR失敗";
   }
 });
+
+/* =========================
+   OCRノイズ除去
+========================= */
+
+function isGarbage(line) {
+
+  /* 1文字 */
+  if (
+    line.length <= 1
+  ) {
+    return true;
+  }
+
+  /* 記号だけ */
+  if (
+    /^[^ぁ-んァ-ヶ一-龠a-zA-Z0-9]+$/
+      .test(line)
+  ) {
+    return true;
+  }
+
+  /* 長い数字 */
+  if (
+    /^[Pp]?\d{5,}$/.test(line)
+  ) {
+    return true;
+  }
+
+  /* 外8 */
+  if (
+    /^外\d+$/.test(line)
+  ) {
+    return true;
+  }
+
+  /* 漢字+数字 */
+  if (
+    /^[一-龠]\d+$/.test(line)
+  ) {
+    return true;
+  }
+
+  /* 英数字だけ */
+  if (
+    /^[A-Za-z0-9]+$/.test(line)
+  ) {
+    return true;
+  }
+
+  /* 郵便番号 */
+  if (
+    /^\d{3}-\d{4}$/.test(line)
+  ) {
+    return true;
+  }
+
+  /* 電話番号 */
+  if (
+    /^\d{2,4}-\d{2,4}-\d{3,4}$/
+      .test(line)
+  ) {
+    return true;
+  }
+
+  /* 日付 */
+  if (
+    /\d{4}\/\d{1,2}\/\d{1,2}/
+      .test(line)
+  ) {
+    return true;
+  }
+
+  /* URL */
+  if (
+    /www|http|co\.jp|\.com/
+      .test(line)
+  ) {
+    return true;
+  }
+
+  /* 店舗住所 */
+  if (
+    /丁目|番地|号|市|区|県/
+      .test(line)
+  ) {
+    return true;
+  }
+
+  return false;
+}
 
 /* =========================
    OCR表示
