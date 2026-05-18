@@ -125,16 +125,22 @@ document.getElementById("addBtn")
   ?.addEventListener("click", async () => {
 
     const name =
-      document.getElementById("name").value;
+      document.getElementById("name")
+        ?.value
+        ?.trim();
 
     const amount =
-      document.getElementById("amount").value;
+      document.getElementById("amount")
+        ?.value
+        ?.trim();
 
     const deadline =
-      document.getElementById("deadline").value;
+      document.getElementById("deadline")
+        ?.value;
 
     const category =
-      document.getElementById("category").value;
+      document.getElementById("category")
+        ?.value || "未分類";
 
     if (!name || !amount || !deadline) {
 
@@ -142,19 +148,32 @@ document.getElementById("addBtn")
       return;
     }
 
-    await addDoc(collection(db, "foods"), {
-      name,
-      amount,
-      category,
-      deadline,
-      createdAt: Date.now()
-    });
+    try {
 
-    document.getElementById("name").value = "";
-    document.getElementById("amount").value = "";
-    document.getElementById("deadline").value = "";
+      await addDoc(
+        collection(db, "foods"),
+        {
+          name,
+          amount,
+          category,
+          deadline,
+          createdAt: Date.now()
+        }
+      );
 
-    loadFoods();
+      document.getElementById("name").value = "";
+      document.getElementById("amount").value = "";
+      document.getElementById("deadline").value = "";
+
+      loadFoods();
+
+    } catch (e) {
+
+      console.error(e);
+      alert("保存失敗");
+
+    }
+
   });
 
 /* =========================
@@ -163,16 +182,26 @@ document.getElementById("addBtn")
 
 async function loadFoods() {
 
-  const snap =
-    await getDocs(collection(db, "foods"));
+  try {
 
-  foods = snap.docs.map(d => ({
-    id: d.id,
-    ...d.data()
-  }));
+    const snap =
+      await getDocs(
+        collection(db, "foods")
+      );
 
-  renderFoods();
-  updateDashboard();
+    foods = snap.docs.map(d => ({
+      id: d.id,
+      ...d.data()
+    }));
+
+    renderFoods();
+    updateDashboard();
+
+  } catch (e) {
+
+    console.error(e);
+
+  }
 }
 
 /* =========================
@@ -203,13 +232,19 @@ function renderFoods() {
 
     if (
       keyword &&
-      !food.name.toLowerCase().includes(keyword)
-    ) return;
+      !food.name
+        .toLowerCase()
+        .includes(keyword)
+    ) {
+      return;
+    }
 
     if (
       category !== "all" &&
       food.category !== category
-    ) return;
+    ) {
+      return;
+    }
 
     const days =
       getDays(food.deadline);
@@ -226,6 +261,7 @@ function renderFoods() {
 
       badge = "⚠️ 3日以内";
       status = "warning";
+
     }
 
     const div =
@@ -245,7 +281,10 @@ function renderFoods() {
 
       </div>
 
-      <p>数量: ${food.amount}</p>
+      <p>
+        数量:
+        ${food.amount}
+      </p>
 
       <p>
         消費期限:
@@ -281,17 +320,29 @@ function bindDeleteButtons() {
   document.querySelectorAll(".delete-btn")
     .forEach(btn => {
 
-      btn.addEventListener("click", async () => {
+      btn.addEventListener(
+        "click",
+        async () => {
 
-        const id = btn.dataset.id;
+          try {
 
-        await deleteDoc(
-          doc(db, "foods", id)
-        );
+            const id =
+              btn.dataset.id;
 
-        loadFoods();
+            await deleteDoc(
+              doc(db, "foods", id)
+            );
 
-      });
+            loadFoods();
+
+          } catch (e) {
+
+            console.error(e);
+
+          }
+
+        }
+      );
 
     });
 }
@@ -311,9 +362,13 @@ function updateDashboard() {
     const d =
       getDays(food.deadline);
 
-    if (d < 0) danger++;
-    else if (d <= 3) warning++;
-    else safe++;
+    if (d < 0) {
+      danger++;
+    } else if (d <= 3) {
+      warning++;
+    } else {
+      safe++;
+    }
 
   });
 
@@ -360,7 +415,8 @@ function updateAnalytics() {
     .textContent = total;
 
   document.getElementById("dangerFoods")
-    .textContent = warning.length;
+    .textContent =
+      warning.length;
 
   const lossRate =
     total === 0
@@ -377,7 +433,12 @@ function updateAnalytics() {
   const ctx =
     document.getElementById("foodChart");
 
-  if (!ctx) return;
+  if (
+    !ctx ||
+    typeof Chart === "undefined"
+  ) {
+    return;
+  }
 
   if (foodChart) {
     foodChart.destroy();
@@ -423,7 +484,9 @@ function updateAnalytics() {
 function renderRanking() {
 
   const area =
-    document.getElementById("rankingArea");
+    document.getElementById(
+      "rankingArea"
+    );
 
   if (!area) return;
 
@@ -438,7 +501,9 @@ function renderRanking() {
 
   const sorted =
     Object.entries(counts)
-      .sort((a, b) => b[1] - a[1]);
+      .sort((a, b) =>
+        b[1] - a[1]
+      );
 
   area.innerHTML =
     sorted.map(([k, v]) => `
@@ -455,13 +520,15 @@ function renderRanking() {
 window.getRecipe = async function() {
 
   const ing =
-    document.getElementById("ingredients")
-      ?.value;
+    document.getElementById(
+      "ingredients"
+    )?.value;
 
   if (!ing) {
 
     alert("食材を入力");
     return;
+
   }
 
   try {
@@ -470,10 +537,12 @@ window.getRecipe = async function() {
       "https://generaterecipe-nqod4cxoqq-uc.a.run.app",
       {
         method: "POST",
+
         headers: {
           "Content-Type":
             "application/json"
         },
+
         body: JSON.stringify({
           ingredients: ing
         })
@@ -483,16 +552,18 @@ window.getRecipe = async function() {
     const data =
       await res.json();
 
-    document.getElementById("recipeResult")
-      .innerHTML = `
-        <pre>${data.text}</pre>
-      `;
+    document.getElementById(
+      "recipeResult"
+    ).innerHTML = `
+      <pre>${data.text}</pre>
+    `;
 
   } catch (e) {
 
     console.error(e);
 
     alert("AIエラー");
+
   }
 };
 
@@ -509,6 +580,17 @@ const foodDB = {
   "たまねぎ": 30,
   "ニンジン": 14,
   "牛肉": 3
+
+};
+
+/* =========================
+   最小限補正辞書
+========================= */
+
+const replaceMap = {
+
+  "農厚豆乳": "濃厚豆乳",
+  "ごっ盛リ": "ごつ盛り"
 
 };
 
@@ -534,7 +616,8 @@ const ignoreWords = [
   "マーケット",
   "No",
   "No.",
-  "TOTAL"
+  "TOTAL",
+  "外8"
 
 ];
 
@@ -546,17 +629,138 @@ function isPriceLike(line) {
 
   return (
 
-    /[¥\\Y′]/.test(line) ||
+    /¥|\d{2,4}/.test(line) ||
 
-    /^\d+$/.test(line) ||
-
-    /\d{2,}/.test(line) ||
-
-    /^[A-Za-z′\\¥]{0,3}\d+$/.test(line)
+    /^[0-9]+$/.test(line)
 
   );
 }
 
+/* =========================
+   ゴミ判定
+========================= */
+
+function isGarbage(line) {
+
+  if (!line) {
+    return true;
+  }
+
+  if (line.length <= 2) {
+    return true;
+  }
+
+  if (
+    /^[^ぁ-んァ-ヶ一-龠a-zA-Z0-9]+$/
+      .test(line)
+  ) {
+    return true;
+  }
+
+  if (
+    /^[Pp]?\d{5,}$/.test(line)
+  ) {
+    return true;
+  }
+
+  if (
+    /^[A-Za-z0-9]+$/.test(line)
+  ) {
+    return true;
+  }
+
+  if (
+    /^\d+$/.test(line)
+  ) {
+    return true;
+  }
+
+  if (
+    /\d{4}\/\d{1,2}\/\d{1,2}/
+      .test(line)
+  ) {
+    return true;
+  }
+
+  if (
+    /^\d{2,4}-\d{2,4}-\d{3,4}$/
+      .test(line)
+  ) {
+    return true;
+  }
+
+  if (
+    /www|http|co\.jp|\.com/
+      .test(line)
+  ) {
+    return true;
+  }
+
+  if (
+    /丁目|番地|号|市|区|県/
+      .test(line)
+  ) {
+    return true;
+  }
+
+  /* OCR崩れ */
+
+  if (
+    /[()\\/]/.test(line)
+  ) {
+    return true;
+  }
+
+  /* 個数系 */
+
+  if (
+    /個|本|枚|袋|パック/.test(line) &&
+    /\d/.test(line)
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+/* =========================
+   商品っぽさ
+========================= */
+
+function isFoodLike(line) {
+
+  if (
+    !/[ぁ-んァ-ヶ一-龠]/.test(line)
+  ) {
+    return false;
+  }
+
+  if (line.length < 3) {
+    return false;
+  }
+
+  const jpCount =
+    (
+      line.match(
+        /[ぁ-んァ-ヶ一-龠]/g
+      ) || []
+    ).length;
+
+  if (jpCount < 3) {
+    return false;
+  }
+
+  const numberCount =
+    (
+      line.match(/\d/g) || []
+    ).length;
+
+  if (numberCount >= 2) {
+    return false;
+  }
+
+  return true;
+}
 
 /* =========================
    OCR期限
@@ -567,7 +771,8 @@ function getOCRDeadline(name) {
   const days =
     foodDB[name] || 3;
 
-  const date = new Date();
+  const date =
+    new Date();
 
   date.setDate(
     date.getDate() + days
@@ -578,35 +783,37 @@ function getOCRDeadline(name) {
     .split("T")[0];
 }
 
-
 /* =========================
-   OCR改善版
+   OCR
 ========================= */
 
-scanBtn?.addEventListener("click", async () => {
+scanBtn?.addEventListener(
+  "click",
+  async () => {
 
-  const file =
-    receiptInput?.files[0];
+    const file =
+      receiptInput?.files[0];
 
-  if (!file) {
+    if (!file) {
 
-    alert("画像を選択してください");
-    return;
-  }
+      alert(
+        "画像を選択してください"
+      );
 
-  scanStatus.textContent =
-    "OCR実行中...";
+      return;
+    }
 
-  ocrResult.innerHTML = "";
+    scanStatus.textContent =
+      "OCR実行中...";
 
-  try {
+    ocrResult.innerHTML = "";
 
-    const reader =
-      new FileReader();
+    try {
 
-    reader.onload = async () => {
+      const reader =
+        new FileReader();
 
-      try {
+      reader.onload = async () => {
 
         const img =
           new Image();
@@ -615,12 +822,10 @@ scanBtn?.addEventListener("click", async () => {
 
           try {
 
-            /* =========================
-               画像補正
-            ========================= */
-
             const canvas =
-              document.createElement("canvas");
+              document.createElement(
+                "canvas"
+              );
 
             const maxWidth = 1400;
 
@@ -639,7 +844,6 @@ scanBtn?.addEventListener("click", async () => {
             const ctx =
               canvas.getContext("2d");
 
-            /* 白背景 */
             ctx.fillStyle = "#fff";
 
             ctx.fillRect(
@@ -649,9 +853,6 @@ scanBtn?.addEventListener("click", async () => {
               canvas.height
             );
 
-            /* 滑らか */
-            ctx.imageSmoothingEnabled = true;
-
             ctx.drawImage(
               img,
               0,
@@ -660,7 +861,8 @@ scanBtn?.addEventListener("click", async () => {
               canvas.height
             );
 
-            /* 軽い明度補正 */
+            /* 白補正 */
+
             const imageData =
               ctx.getImageData(
                 0,
@@ -686,9 +888,9 @@ scanBtn?.addEventListener("click", async () => {
                 ) / 3;
 
               const value =
-                avg > 140
+                avg > 180
                   ? 255
-                  : avg;
+                  : avg * 0.9;
 
               data[i] = value;
               data[i + 1] = value;
@@ -701,64 +903,50 @@ scanBtn?.addEventListener("click", async () => {
               0
             );
 
-            const compressedBase64 =
+            const base64 =
               canvas.toDataURL(
                 "image/jpeg",
                 0.95
               );
 
-            console.log(
-              "base64 size:",
-              compressedBase64.length
-            );
+            /* OCR API */
 
-            /* =========================
-               OCR API
-            ========================= */
+            const res =
+              await fetch(
+                "https://us-central1-fridge-checker-fd18e.cloudfunctions.net/ocr",
+                {
+                  method: "POST",
 
-            const res = await fetch(
-              "https://us-central1-fridge-checker-fd18e.cloudfunctions.net/ocr",
-              {
-                method: "POST",
+                  headers: {
+                    "Content-Type":
+                      "application/json"
+                  },
 
-                headers: {
-                  "Content-Type":
-                    "application/json"
-                },
-
-                body: JSON.stringify({
-                  image:
-                    compressedBase64
-                })
-              }
-            );
+                  body: JSON.stringify({
+                    image: base64
+                  })
+                }
+              );
 
             const dataRes =
               await res.json();
-
-            console.log(dataRes);
 
             const text =
               dataRes.text || "";
 
             console.log(text);
 
-            /* =========================
-               OCR解析
-            ========================= */
+            let lines =
+              text
+                .split("\n")
+                .map(line =>
+                  line
+                    .replace(/\s+/g, "")
+                    .trim()
+                )
+                .filter(line => line);
 
-            let lines = text
-              .split("\n")
-              .map(line =>
-                line
-                  .replace(/\s+/g, "")
-                  .trim()
-              )
-              .filter(line => line);
-
-            /* =========================
-               合計以降カット
-            ========================= */
+            /* 合計以降削除 */
 
             const stopWords = [
 
@@ -769,7 +957,6 @@ scanBtn?.addEventListener("click", async () => {
               "現金",
               "お預り",
               "お釣り",
-              "クレジット",
               "CARD"
 
             ];
@@ -784,95 +971,82 @@ scanBtn?.addEventListener("click", async () => {
             if (cutIndex !== -1) {
 
               lines =
-                lines.slice(0, cutIndex);
+                lines.slice(
+                  0,
+                  cutIndex
+                );
 
             }
 
-            console.log(
-              "商品候補:",
-              lines
-            );
-
-            /* =========================
-               OCRフィルタ
-            ========================= */
+            /* フィルタ */
 
             detectedProducts =
               [...new Set(
 
-                lines.filter(line => {
+                lines
+                  .filter(line => {
 
-                  /* 短すぎ */
-                  if (
-                    line.length < 3
-                  ) {
-                    return false;
-                  }
+                    if (
+                      ignoreWords.some(
+                        word =>
+                          line.includes(word)
+                      )
+                    ) {
+                      return false;
+                    }
 
-                  /* 金額 */
-                  if (
-                    isPriceLike(line)
-                  ) {
-                    return false;
-                  }
+                    if (
+                      isPriceLike(line)
+                    ) {
+                      return false;
+                    }
 
-                  /* ゴミ */
-                  if (
-                    isGarbage(line)
-                  ) {
-                    return false;
-                  }
+                    if (
+                      isGarbage(line)
+                    ) {
+                      return false;
+                    }
 
-                  /* 無視ワード */
-                  if (
-                    ignoreWords.some(word =>
-                      line.includes(word)
-                    )
-                  ) {
-                    return false;
-                  }
+                    if (
+                      !isFoodLike(line)
+                    ) {
+                      return false;
+                    }
 
-                  /* 数字多すぎ */
-                  const numberCount =
-                    (
-                      line.match(/\d/g) || []
-                    ).length;
+                    return true;
 
-                  if (
-                    numberCount >=
-                    line.length / 2
-                  ) {
-                    return false;
-                  }
+                  })
 
-                  /* 記号多すぎ */
-                  const symbolCount =
-                    (
-                      line.match(
-                        /[()（）\/¥.,]/g
-                      ) || []
-                    ).length;
+                  .map(line => {
 
-                  if (
-                    symbolCount >= 3
-                  ) {
-                    return false;
-                  }
+                    Object.keys(
+                      replaceMap
+                    ).forEach(key => {
 
-                  return true;
+                      if (
+                        line.includes(key)
+                      ) {
 
-                })
+                        line =
+                          line.replace(
+                            key,
+                            replaceMap[key]
+                          );
+
+                      }
+
+                    });
+
+                    return line;
+
+                  })
 
               )];
 
             console.log(
-              "検出結果:",
+              "検出商品:",
               detectedProducts
             );
-
-            /* =========================
-               商品なし
-            ========================= */
 
             if (
               detectedProducts.length === 0
@@ -883,8 +1057,7 @@ scanBtn?.addEventListener("click", async () => {
 
               ocrResult.innerHTML = `
                 <p>
-                  レシートを真上から
-                  撮影してください
+                  真上から撮影してください
                 </p>
               `;
 
@@ -902,122 +1075,29 @@ scanBtn?.addEventListener("click", async () => {
 
             scanStatus.textContent =
               "OCR失敗";
+
           }
+
         };
 
         img.src =
           reader.result;
 
-      } catch (e) {
+      };
 
-        console.error(e);
+      reader.readAsDataURL(file);
 
-        scanStatus.textContent =
-          "OCR失敗";
-      }
-    };
+    } catch (e) {
 
-    reader.readAsDataURL(file);
+      console.error(e);
 
-  } catch (e) {
+      scanStatus.textContent =
+        "OCR失敗";
 
-    console.error(e);
+    }
 
-    scanStatus.textContent =
-      "OCR失敗";
   }
-});
-
-/* =========================
-   OCRノイズ除去
-========================= */
-
-function isGarbage(line) {
-
-  /* 1文字 */
-  if (
-    line.length <= 1
-  ) {
-    return true;
-  }
-
-  /* 記号だけ */
-  if (
-    /^[^ぁ-んァ-ヶ一-龠a-zA-Z0-9]+$/
-      .test(line)
-  ) {
-    return true;
-  }
-
-  /* 長い数字 */
-  if (
-    /^[Pp]?\d{5,}$/.test(line)
-  ) {
-    return true;
-  }
-
-  /* 外8 */
-  if (
-    /^外\d+$/.test(line)
-  ) {
-    return true;
-  }
-
-  /* 漢字+数字 */
-  if (
-    /^[一-龠]\d+$/.test(line)
-  ) {
-    return true;
-  }
-
-  /* 英数字だけ */
-  if (
-    /^[A-Za-z0-9]+$/.test(line)
-  ) {
-    return true;
-  }
-
-  /* 郵便番号 */
-  if (
-    /^\d{3}-\d{4}$/.test(line)
-  ) {
-    return true;
-  }
-
-  /* 電話番号 */
-  if (
-    /^\d{2,4}-\d{2,4}-\d{3,4}$/
-      .test(line)
-  ) {
-    return true;
-  }
-
-  /* 日付 */
-  if (
-    /\d{4}\/\d{1,2}\/\d{1,2}/
-      .test(line)
-  ) {
-    return true;
-  }
-
-  /* URL */
-  if (
-    /www|http|co\.jp|\.com/
-      .test(line)
-  ) {
-    return true;
-  }
-
-  /* 店舗住所 */
-  if (
-    /丁目|番地|号|市|区|県/
-      .test(line)
-  ) {
-    return true;
-  }
-
-  return false;
-}
+);
 
 /* =========================
    OCR表示
@@ -1067,6 +1147,7 @@ function renderOCRResult() {
           <br>
 
           数量:
+
           <input
             type="number"
             id="ocr-qty-${i}"
@@ -1077,6 +1158,7 @@ function renderOCRResult() {
           <br>
 
           期限:
+
           <input
             type="date"
             id="ocr-deadline-${i}"
@@ -1099,25 +1181,30 @@ function renderOCRResult() {
 
 function bindOCRButtons() {
 
-  document.getElementById("checkAllBtn")
-    ?.addEventListener("click", () => {
-
+  document.getElementById(
+    "checkAllBtn"
+  )?.addEventListener(
+    "click",
+    () => {
       toggleOCRAll(true);
+    }
+  );
 
-    });
-
-  document.getElementById("uncheckAllBtn")
-    ?.addEventListener("click", () => {
-
+  document.getElementById(
+    "uncheckAllBtn"
+  )?.addEventListener(
+    "click",
+    () => {
       toggleOCRAll(false);
+    }
+  );
 
-    });
-
-  document.getElementById("saveSelectedBtn")
-    ?.addEventListener(
-      "click",
-      saveOCRSelected
-    );
+  document.getElementById(
+    "saveSelectedBtn"
+  )?.addEventListener(
+    "click",
+    saveOCRSelected
+  );
 }
 
 /* =========================
@@ -1126,18 +1213,20 @@ function bindOCRButtons() {
 
 function toggleOCRAll(flag) {
 
-  detectedProducts.forEach((_, i) => {
+  detectedProducts.forEach(
+    (_, i) => {
 
-    const el =
-      document.getElementById(
-        `ocr-check-${i}`
-      );
+      const el =
+        document.getElementById(
+          `ocr-check-${i}`
+        );
 
-    if (el) {
-      el.checked = flag;
+      if (el) {
+        el.checked = flag;
+      }
+
     }
-
-  });
+  );
 }
 
 /* =========================
@@ -1159,7 +1248,9 @@ async function saveOCRSelected() {
         `ocr-check-${i}`
       );
 
-    if (!checked?.checked) continue;
+    if (!checked?.checked) {
+      continue;
+    }
 
     const qty =
       document.getElementById(
@@ -1171,26 +1262,37 @@ async function saveOCRSelected() {
         `ocr-deadline-${i}`
       )?.value;
 
-    await addDoc(
-      collection(db, "foods"),
-      {
-        name:
-          detectedProducts[i],
+    try {
 
-        amount: qty,
+      await addDoc(
+        collection(db, "foods"),
+        {
+          name:
+            detectedProducts[i],
 
-        category: "OCR",
+          amount: qty,
 
-        deadline,
+          category: "OCR",
 
-        createdAt: Date.now()
-      }
-    );
+          deadline,
 
-    count++;
+          createdAt: Date.now()
+        }
+      );
+
+      count++;
+
+    } catch (e) {
+
+      console.error(e);
+
+    }
+
   }
 
-  alert(`${count}件追加しました`);
+  alert(
+    `${count}件追加しました`
+  );
 
   detectedProducts = [];
 
@@ -1203,17 +1305,19 @@ async function saveOCRSelected() {
    検索
 ========================= */
 
-document.getElementById("searchInput")
-  ?.addEventListener(
-    "input",
-    renderFoods
-  );
+document.getElementById(
+  "searchInput"
+)?.addEventListener(
+  "input",
+  renderFoods
+);
 
-document.getElementById("filterCategory")
-  ?.addEventListener(
-    "change",
-    renderFoods
-  );
+document.getElementById(
+  "filterCategory"
+)?.addEventListener(
+  "change",
+  renderFoods
+);
 
 /* =========================
    初期化
