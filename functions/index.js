@@ -1,14 +1,14 @@
 const { onRequest } = require("firebase-functions/v2/https");
-const { defineSecret } = require("firebase-functions/params");
 
-const axios = require("axios");
-const FormData = require("form-data");
+const vision = require("@google-cloud/vision");
 
 /* =========================
-   Secret
+   Google Vision
 ========================= */
 
-const OCR_API_KEY = defineSecret("OCR_API_KEY");
+const client = new vision.ImageAnnotatorClient({
+  keyFilename: "service-account.json",
+});
 
 /* =========================
    OCR
@@ -17,7 +17,6 @@ const OCR_API_KEY = defineSecret("OCR_API_KEY");
 exports.ocr = onRequest(
   {
     cors: true,
-    secrets: [OCR_API_KEY]
   },
 
   async (req, res) => {
@@ -36,32 +35,29 @@ exports.ocr = onRequest(
         });
       }
 
-      const formData = new FormData();
+      /* =========================
+         OCR実行
+      ========================= */
 
-      formData.append("base64Image", base64);
-
-      formData.append(
-        "apikey",
-        OCR_API_KEY.value()
-      );
-
-      formData.append(
-        "language",
-        "jpn"
-      );
-
-      const response = await axios.post(
-        "https://api.ocr.space/parse/image",
-        formData,
-        {
-          headers: formData.getHeaders()
+      const [result] = await client.textDetection({
+        image: {
+          content: base64
         }
-      );
+      });
+
+      const detections =
+        result.textAnnotations || [];
 
       const text =
-        response.data?.ParsedResults?.[0]?.ParsedText || "";
+        detections[0]?.description || "";
 
-      return res.json({ text });
+      /* =========================
+         レスポンス
+      ========================= */
+
+      return res.json({
+        text
+      });
 
     } catch (e) {
 

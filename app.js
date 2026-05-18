@@ -109,8 +109,8 @@ function getDays(deadline) {
   const now = new Date();
   const target = new Date(deadline);
 
-  now.setHours(0,0,0,0);
-  target.setHours(0,0,0,0);
+  now.setHours(0, 0, 0, 0);
+  target.setHours(0, 0, 0, 0);
 
   return Math.ceil(
     (target - now) / 86400000
@@ -416,19 +416,19 @@ function updateAnalytics() {
 
   document.getElementById("dangerFoods")
     .textContent =
-      warning.length;
+    warning.length;
 
   const lossRate =
     total === 0
       ? 0
       : Math.round(
-          expired.length /
-          total * 100
-        );
+        expired.length /
+        total * 100
+      );
 
   document.getElementById("lossRate")
     .textContent =
-      `${lossRate}%`;
+    `${lossRate}%`;
 
   const ctx =
     document.getElementById("foodChart");
@@ -517,7 +517,7 @@ function renderRanking() {
    AI Recipe
 ========================= */
 
-window.getRecipe = async function() {
+window.getRecipe = async function () {
 
   const ing =
     document.getElementById(
@@ -629,9 +629,8 @@ function isPriceLike(line) {
 
   return (
 
-    /¥|\d{2,4}/.test(line) ||
-
-    /^[0-9]+$/.test(line)
+    /^¥?\d+$/.test(line) ||
+    /^¥\d+/.test(line)
 
   );
 }
@@ -646,41 +645,28 @@ function isGarbage(line) {
     return true;
   }
 
-  if (line.length <= 2) {
+  if (line.length <= 1) {
     return true;
   }
 
+  /* バーコード */
+
   if (
-    /^[^ぁ-んァ-ヶ一-龠a-zA-Z0-9]+$/
+    /^[Pp]?\d{8,}$/.test(line)
+  ) {
+    return true;
+  }
+
+  /* URL */
+
+  if (
+    /www|http|co\.jp|\.com/i
       .test(line)
   ) {
     return true;
   }
 
-  if (
-    /^[Pp]?\d{5,}$/.test(line)
-  ) {
-    return true;
-  }
-
-  if (
-    /^[A-Za-z0-9]+$/.test(line)
-  ) {
-    return true;
-  }
-
-  if (
-    /^\d+$/.test(line)
-  ) {
-    return true;
-  }
-
-  if (
-    /\d{4}\/\d{1,2}\/\d{1,2}/
-      .test(line)
-  ) {
-    return true;
-  }
+  /* 電話番号 */
 
   if (
     /^\d{2,4}-\d{2,4}-\d{3,4}$/
@@ -689,33 +675,10 @@ function isGarbage(line) {
     return true;
   }
 
-  if (
-    /www|http|co\.jp|\.com/
-      .test(line)
-  ) {
-    return true;
-  }
+  /* 金額だけ */
 
   if (
-    /丁目|番地|号|市|区|県/
-      .test(line)
-  ) {
-    return true;
-  }
-
-  /* OCR崩れ */
-
-  if (
-    /[()\\/]/.test(line)
-  ) {
-    return true;
-  }
-
-  /* 個数系 */
-
-  if (
-    /個|本|枚|袋|パック/.test(line) &&
-    /\d/.test(line)
+    /^¥?\d+$/.test(line)
   ) {
     return true;
   }
@@ -735,27 +698,34 @@ function isFoodLike(line) {
     return false;
   }
 
-  if (line.length < 3) {
+  if (line.length < 2) {
     return false;
   }
 
-  const jpCount =
-    (
-      line.match(
-        /[ぁ-んァ-ヶ一-龠]/g
-      ) || []
-    ).length;
+  /* 数字だけ除外 */
 
-  if (jpCount < 3) {
+  if (/^\d+$/.test(line)) {
     return false;
   }
 
-  const numberCount =
-    (
-      line.match(/\d/g) || []
-    ).length;
+  /* レジ系 */
 
-  if (numberCount >= 2) {
+  const ngWords = [
+
+    "精算機",
+    "ハシモト",
+    "TEL",
+    "現金",
+    "合計",
+    "税込"
+
+  ];
+
+  if (
+    ngWords.some(word =>
+      line.includes(word)
+    )
+  ) {
     return false;
   }
 
@@ -887,10 +857,7 @@ scanBtn?.addEventListener(
                   data[i + 2]
                 ) / 3;
 
-              const value =
-                avg > 180
-                  ? 255
-                  : avg * 0.9;
+              const value = avg;
 
               data[i] = value;
               data[i + 1] = value;
@@ -904,16 +871,18 @@ scanBtn?.addEventListener(
             );
 
             const base64 =
-              canvas.toDataURL(
-                "image/jpeg",
-                0.95
-              );
+              canvas
+                .toDataURL(
+                  "image/jpeg",
+                  0.95
+                )
+                .split(",")[1];
 
             /* OCR API */
 
             const res =
               await fetch(
-                "https://us-central1-fridge-checker-fd18e.cloudfunctions.net/ocr",
+                "https://ocr-nqod4cxoqq-uc.a.run.app",
                 {
                   method: "POST",
 
@@ -941,10 +910,38 @@ scanBtn?.addEventListener(
                 .split("\n")
                 .map(line =>
                   line
-                    .replace(/\s+/g, "")
+                    .replace(/\s+/g, " ")
                     .trim()
                 )
                 .filter(line => line);
+
+            /* 商品名クリーンアップ */
+
+            lines = lines.map(line => {
+
+              return line
+
+                /* 外8 0034 削除 */
+                .replace(/^外?\d*\s?\d{3,4}\s*/g, "")
+
+                /* 48 0039 削除 */
+                .replace(/^\d+\s+\d+\s*/g, "")
+
+                /* Pコード削除 */
+                .replace(/^P\d+/g, "")
+
+                /* 金額削除 */
+                .replace(/¥\d+/g, "")
+
+                /* 個数表記削除 */
+                .replace(/\(\s*\d+.*?\)/g, "")
+
+                /* kg除去 */
+                .replace(/\d+kg/g, "")
+
+                .trim();
+
+            }).filter(line => line);
 
             /* 合計以降削除 */
 
@@ -979,7 +976,7 @@ scanBtn?.addEventListener(
             }
 
             /* フィルタ */
-
+            console.log("OCR lines:", lines);
             detectedProducts =
               [...new Set(
 
@@ -1125,10 +1122,10 @@ function renderOCRResult() {
 
     ${detectedProducts.map((p, i) => {
 
-      const deadline =
-        getOCRDeadline(p);
+    const deadline =
+      getOCRDeadline(p);
 
-      return `
+    return `
 
         <div class="ocr-item">
 
@@ -1169,7 +1166,7 @@ function renderOCRResult() {
 
       `;
 
-    }).join("")}
+  }).join("")}
   `;
 
   bindOCRButtons();
