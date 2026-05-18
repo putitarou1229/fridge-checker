@@ -617,8 +617,13 @@ const ignoreWords = [
   "No",
   "No.",
   "TOTAL",
-  "外8"
-
+  "外8",
+  "精算機",
+  "お会計券",
+  "会計券",
+  "R2586",
+  "#000",
+  "レシート"
 ];
 
 /* =========================
@@ -684,6 +689,33 @@ function isGarbage(line) {
   }
 
   return false;
+
+  if (
+    /個|本|枚|袋|パック/.test(line) &&
+    /\d/.test(line)
+  ) {
+    return true;
+  }
+
+  /* レシート番号系 */
+
+  if (
+    /R\d+/.test(line)
+  ) {
+    return true;
+  }
+
+  if (
+    /#\d+/.test(line)
+  ) {
+    return true;
+  }
+
+  if (
+    /精算機|会計券/.test(line)
+  ) {
+    return true;
+  }
 }
 
 /* =========================
