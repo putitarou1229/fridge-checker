@@ -210,105 +210,101 @@ async function loadFoods() {
 
 function renderFoods() {
 
-  if (!foodList) return;
+  const categoryView =
+    document.getElementById(
+      "categoryView"
+    );
 
-  foodList.innerHTML = "";
+  if (!categoryView) return;
 
-  foods.sort((a, b) =>
-    getDays(a.deadline) -
-    getDays(b.deadline)
-  );
+  const categories = [
 
-  const keyword =
-    document.getElementById("searchInput")
-      ?.value
-      ?.toLowerCase() || "";
+    {
+      name: "肉",
+      icon: "🥩"
+    },
 
-  const category =
-    document.getElementById("filterCategory")
-      ?.value || "all";
+    {
+      name: "魚",
+      icon: "🐟"
+    },
 
-  foods.forEach(food => {
+    {
+      name: "野菜",
+      icon: "🥬"
+    },
 
-    if (
-      keyword &&
-      !food.name
-        .toLowerCase()
-        .includes(keyword)
-    ) {
-      return;
+    {
+      name: "乳製品",
+      icon: "🥛"
+    },
+
+    {
+      name: "飲み物",
+      icon: "🥤"
+    },
+
+    {
+      name: "冷凍",
+      icon: "❄️"
+    },
+
+    {
+      name: "その他",
+      icon: "📦"
     }
 
-    if (
-      category !== "all" &&
-      food.category !== category
-    ) {
-      return;
-    }
+  ];
 
-    const days =
-      getDays(food.deadline);
+  categoryView.innerHTML = `
 
-    let badge = "🥬 安全";
-    let status = "safe";
+<div class="fridge-categories">
 
-    if (days < 0) {
+${categories.map(cat => {
 
-      badge = "💀 期限切れ";
-      status = "danger";
+    const count =
+      foods.filter(
+        f => f.category === cat.name
+      ).length;
 
-    } else if (days <= 3) {
+    return `
 
-      badge = "⚠️ 3日以内";
-      status = "warning";
+<div
+class="category-card"
+data-category="${cat.name}"
+>
 
-    }
+<div class="cat-icon">
+${cat.icon}
+</div>
 
-    const div =
-      document.createElement("div");
+<h3>
+${cat.name}
+</h3>
 
-    div.className =
-      `food-card ${status}`;
+<p>
+${count}個
+</p>
 
-    div.innerHTML = `
-      <div class="food-top">
+</div>
 
-        <h3>${food.name}</h3>
+`;
 
-        <span class="badge">
-          ${badge}
-        </span>
+  }).join("")}
 
-      </div>
+</div>
 
-      <p>
-        数量:
-        ${food.amount}
-      </p>
+<div id="categoryDetail">
 
-      <p>
-        消費期限:
-        ${food.deadline || "未設定"}
-      </p>
+タップして表示
 
-      <p>
-        カテゴリ:
-        ${food.category}
-      </p>
+</div>
 
-      <button
-        class="delete-btn"
-        data-id="${food.id}"
-      >
-        削除
-      </button>
-    `;
+`;
 
-    foodList.appendChild(div);
+  // HTML生成後にイベント登録
+  bindCategoryCards();
 
-  });
-
-  bindDeleteButtons();
 }
 
 /* =========================
@@ -347,6 +343,133 @@ function bindDeleteButtons() {
     });
 }
 
+function bindCategoryCards() {
+
+  document
+    .querySelectorAll(
+      ".category-card"
+    )
+    .forEach(card => {
+
+      card.addEventListener(
+        "click",
+        () => {
+
+          const category =
+            card.dataset.category;
+
+          showCategoryFoods(
+            category
+          );
+
+        });
+
+    });
+
+}
+
+
+function showCategoryFoods(
+  category
+) {
+
+  const detail =
+    document.getElementById(
+      "categoryDetail"
+    );
+
+  const list =
+    foods.filter(
+      f =>
+        f.category === category
+    );
+
+  if (
+    list.length === 0
+  ) {
+
+    detail.innerHTML = `
+
+<h2>
+${category}
+</h2>
+
+<p>
+食材なし
+</p>
+
+`;
+
+    return;
+
+  }
+
+  detail.innerHTML = `
+
+<h2>
+
+${category}
+
+</h2>
+
+${list.map(food => {
+
+    const days =
+      getDays(
+        food.deadline
+      );
+
+    let icon = "🥬";
+
+    if (days < 0) {
+
+      icon = "💀";
+
+    }
+    else if (
+      days <= 3
+    ) {
+
+      icon = "⚠️";
+
+    }
+
+    return `
+
+<div
+class="
+detail-food
+">
+
+<div>
+
+<strong>
+
+${food.name}
+
+</strong>
+
+<br>
+
+${food.amount}個
+
+</div>
+
+<div>
+
+${icon}
+
+</div>
+
+</div>
+
+`;
+
+  }).join("")}
+
+`;
+
+}
 /* =========================
    Dashboard
 ========================= */
@@ -359,27 +482,43 @@ function updateDashboard() {
 
   foods.forEach(food => {
 
-    const d =
+    const days =
       getDays(food.deadline);
 
-    if (d < 0) {
-      danger++;
-    } else if (d <= 3) {
-      warning++;
-    } else {
-      safe++;
+    // 数量を数値化
+    const amount =
+      parseInt(food.amount) || 1;
+
+    if (days < 0) {
+
+      danger += amount;
+
+    }
+    else if (days <= 3) {
+
+      warning += amount;
+
+    }
+    else {
+
+      safe += amount;
+
     }
 
   });
 
-  document.getElementById("safeCount")
-    .textContent = safe;
+  document.getElementById(
+    "safeCount"
+  ).textContent = safe;
 
-  document.getElementById("warningCount")
-    .textContent = warning;
+  document.getElementById(
+    "warningCount"
+  ).textContent = warning;
 
-  document.getElementById("dangerCount")
-    .textContent = danger;
+  document.getElementById(
+    "dangerCount"
+  ).textContent = danger;
+
 }
 
 /* =========================
@@ -1301,7 +1440,7 @@ async function saveOCRSelected() {
 
           amount: qty,
 
-          category: "OCR",
+          category: "その他",
 
           deadline,
 
@@ -1347,6 +1486,61 @@ document.getElementById(
   "change",
   renderFoods
 );
+
+// 開発用削除コード
+/* =========================
+   全削除
+========================= */
+
+document
+.getElementById("resetBtn")
+?.addEventListener(
+"click",
+async()=>{
+
+const ok=
+confirm(
+"全食材データを削除しますか？"
+);
+
+if(!ok)return;
+
+try{
+
+const snap=
+await getDocs(
+collection(db,"foods")
+);
+
+for(const item of snap.docs){
+
+await deleteDoc(
+doc(
+db,
+"foods",
+item.id
+)
+);
+
+}
+
+foods=[];
+
+loadFoods();
+
+alert(
+"全データ削除完了"
+);
+
+}catch(e){
+
+console.error(e);
+
+alert("削除失敗");
+
+}
+
+});
 
 /* =========================
    初期化

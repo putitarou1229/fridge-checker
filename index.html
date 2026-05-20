@@ -21,30 +21,6 @@
     <span id="plan">Free</span>
   </header>
 
-  <!-- TOP TABS
-  <nav class="tabs">
-
-    <button class="tab active" data-tab="dashboard">
-      Dashboard
-    </button>
-
-    <button class="tab" data-tab="foods">
-      Foods
-    </button>
-
-    <button class="tab" data-tab="analytics">
-      Analytics
-    </button>
-
-    <button class="tab" data-tab="recipes">
-      Recipes
-    </button>
-
-    <button class="tab" data-tab="scan">
-      Scan
-    </button>
-
-  </nav> -->
 
   <main class="container">
 
@@ -88,6 +64,7 @@
           <option value="魚">🐟 魚</option>
           <option value="乳製品">🥛 乳製品</option>
           <option value="飲み物">🥤 飲み物</option>
+          <option value="冷凍">❄️ 冷凍</option>
           <option value="その他">📦 その他</option>
 
         </select>
@@ -96,6 +73,12 @@
 
         <button id="addBtn">
           追加
+        </button>
+
+
+        <!-- 削除ボタンデバッグ用 -->
+        <button id="resetBtn">
+          全データ削除
         </button>
 
       </div>
@@ -113,14 +96,14 @@
           <option value="魚">🐟 魚</option>
           <option value="乳製品">🥛 乳製品</option>
           <option value="飲み物">🥤 飲み物</option>
+          <option value="冷凍">❄️ 冷凍</option>
           <option value="その他">📦 その他</option>
 
         </select>
 
       </div>
 
-      <div id="foodList"></div>
-
+      <div id="categoryView"></div>
     </section>
 
     <!-- ANALYTICS -->
@@ -164,10 +147,7 @@
 
       <h2>🍳 AIレシピ</h2>
 
-      <textarea
-        id="ingredients"
-        placeholder="食材を入力"
-      ></textarea>
+      <textarea id="ingredients" placeholder="食材を入力"></textarea>
 
       <button id="recipeBtn">
         レシピ生成
@@ -182,11 +162,7 @@
 
       <h2>📷 レシートスキャン</h2>
 
-      <input
-        type="file"
-        id="receiptInput"
-        accept="image/*"
-      >
+      <input type="file" id="receiptInput" accept="image/*">
 
       <button id="scanBtn">
         OCR開始
@@ -233,4 +209,5 @@
   <script type="module" src="app.js"></script>
 
 </body>
+
 </html>
