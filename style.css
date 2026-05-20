@@ -370,3 +370,118 @@ border-bottom:
 1px solid #eee;
 
 }
+
+.item-row{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin:10px 0;
+padding:8px;
+border:1px solid #ddd;
+border-radius:8px;
+}
+
+select{
+padding:6px;
+border-radius:6px;
+}
+
+/* ===== OCR結果表示 ===== */
+
+.ocr-item{
+
+background:white;
+
+border:1px solid #ddd;
+
+border-radius:12px;
+
+padding:12px;
+
+margin-bottom:12px;
+
+}
+
+.ocr-item label{
+
+display:block;
+
+margin-bottom:10px;
+
+font-size:16px;
+
+}
+
+.ocr-item strong{
+
+font-size:16px;
+
+}
+
+/* 数量 + カテゴリを横並び */
+
+.field-row{
+
+display:flex;
+
+align-items:flex-end;
+
+gap:15px;
+
+margin-bottom:10px;
+
+}
+
+/* ラベル＋入力を縦並び */
+
+.field-group{
+
+display:flex;
+
+flex-direction:column;
+
+}
+
+/* 数量 */
+
+.ocr-item input[type="number"]{
+
+width:60px;
+
+padding:8px;
+
+}
+
+/* カテゴリ */
+
+.ocr-item select{
+
+width:120px;
+
+padding:8px;
+
+}
+
+/* 期限 */
+
+.ocr-item input[type="date"]{
+
+width:150px;
+
+padding:8px;
+
+}
+
+/* スマホ時は折り返し */
+
+@media(max-width:480px){
+
+.field-row{
+
+flex-wrap:wrap;
+
+gap:10px;
+
+}
+
+}

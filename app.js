@@ -1267,80 +1267,198 @@ scanBtn?.addEventListener(
   }
 );
 
+// 自動カテゴリ選択
+function autoCategory(item) {
+
+  item = item.toLowerCase();
+
+  // 肉
+  if (
+    item.includes("牛") ||
+    item.includes("豚") ||
+    item.includes("鶏") ||
+    item.includes("ひき肉")
+  ) {
+    return "肉";
+  }
+
+  // 野菜
+  if (
+    item.includes("キャベツ") ||
+    item.includes("にんじん") ||
+    item.includes("玉ねぎ") ||
+    item.includes("もやし")
+  ) {
+    return "野菜";
+  }
+
+  // 魚
+  if (
+    item.includes("鮭") ||
+    item.includes("まぐろ") ||
+    item.includes("さば")
+  ) {
+    return "魚";
+  }
+
+  // 乳製品
+  if (
+    item.includes("牛乳") ||
+    item.includes("チーズ") ||
+    item.includes("ヨーグルト")
+  ) {
+    return "乳製品";
+  }
+
+  // 飲み物
+  if (
+    item.includes("コーラ") ||
+    item.includes("お茶") ||
+    item.includes("ジュース")
+  ) {
+    return "飲み物";
+  }
+
+  // 冷凍
+  if (
+    item.includes("冷凍") ||
+    item.includes("アイス")
+  ) {
+    return "冷凍";
+  }
+
+  return "その他";
+}
+
+/* =========================
+   OCR表示
+========================= */
+
 /* =========================
    OCR表示
 ========================= */
 
 function renderOCRResult() {
 
+  const categories = [
+    { value: "野菜", label: "🥬 野菜" },
+    { value: "肉", label: "🥩 肉" },
+    { value: "魚", label: "🐟 魚" },
+    { value: "乳製品", label: "🥛 乳製品" },
+    { value: "飲み物", label: "🥤 飲み物" },
+    { value: "冷凍", label: "❄️ 冷凍" },
+    { value: "その他", label: "📦 その他" }
+  ];
+
   ocrResult.innerHTML = `
 
-    <h3>検出商品</h3>
+<h3>検出商品</h3>
 
-    <button id="checkAllBtn">
-      全選択
-    </button>
+<button id="checkAllBtn">
+全選択
+</button>
 
-    <button id="uncheckAllBtn">
-      全解除
-    </button>
+<button id="uncheckAllBtn">
+全解除
+</button>
 
-    <button id="saveSelectedBtn">
-      保存
-    </button>
+<button id="saveSelectedBtn">
+保存
+</button>
 
-    <br><br>
+<br><br>
 
-    ${detectedProducts.map((p, i) => {
+${detectedProducts.map((p,i)=>{
 
-    const deadline =
-      getOCRDeadline(p);
+const deadline =
+getOCRDeadline(p);
 
-    return `
+const category =
+autoCategory(p);
 
-        <div class="ocr-item">
+return `
 
-          <label>
+<div class="ocr-item">
 
-            <input
-              type="checkbox"
-              id="ocr-check-${i}"
-              checked
-            >
+<label>
 
-            <strong>${p}</strong>
+<input
+type="checkbox"
+id="ocr-check-${i}"
+checked
+>
 
-          </label>
+<strong>${p}</strong>
 
-          <br>
+</label>
 
-          数量:
 
-          <input
-            type="number"
-            id="ocr-qty-${i}"
-            value="1"
-            min="1"
-          >
+<div class="field-row">
 
-          <br>
+<div class="field-group">
 
-          期限:
+数量
 
-          <input
-            type="date"
-            id="ocr-deadline-${i}"
-            value="${deadline}"
-          >
+<input
+type="number"
+id="ocr-qty-${i}"
+value="1"
+min="1"
+>
 
-        </div>
+</div>
 
-      `;
 
-  }).join("")}
-  `;
+<div class="field-group">
+
+カテゴリ
+
+<select
+id="ocr-category-${i}"
+>
+
+${categories.map(c=>`
+
+<option
+value="${c.value}"
+${c.value===category?"selected":""}
+>
+
+${c.label}
+
+</option>
+
+`).join("")}
+
+</select>
+
+</div>
+
+</div>
+
+
+<div class="field-group">
+
+期限
+
+<input
+type="date"
+id="ocr-deadline-${i}"
+value="${deadline}"
+>
+
+</div>
+
+</div>
+
+`;
+
+}).join("")}
+
+`;
 
   bindOCRButtons();
+
 }
 
 /* =========================
@@ -1430,6 +1548,12 @@ async function saveOCRSelected() {
         `ocr-deadline-${i}`
       )?.value;
 
+    const category =
+      document.getElementById(
+        `ocr-category-${i}`
+      )?.value || "その他";
+
+
     try {
 
       await addDoc(
@@ -1440,7 +1564,7 @@ async function saveOCRSelected() {
 
           amount: qty,
 
-          category: "その他",
+          category: category,
 
           deadline,
 
@@ -1493,54 +1617,54 @@ document.getElementById(
 ========================= */
 
 document
-.getElementById("resetBtn")
-?.addEventListener(
-"click",
-async()=>{
+  .getElementById("resetBtn")
+  ?.addEventListener(
+    "click",
+    async () => {
 
-const ok=
-confirm(
-"全食材データを削除しますか？"
-);
+      const ok =
+        confirm(
+          "全食材データを削除しますか？"
+        );
 
-if(!ok)return;
+      if (!ok) return;
 
-try{
+      try {
 
-const snap=
-await getDocs(
-collection(db,"foods")
-);
+        const snap =
+          await getDocs(
+            collection(db, "foods")
+          );
 
-for(const item of snap.docs){
+        for (const item of snap.docs) {
 
-await deleteDoc(
-doc(
-db,
-"foods",
-item.id
-)
-);
+          await deleteDoc(
+            doc(
+              db,
+              "foods",
+              item.id
+            )
+          );
 
-}
+        }
 
-foods=[];
+        foods = [];
 
-loadFoods();
+        loadFoods();
 
-alert(
-"全データ削除完了"
-);
+        alert(
+          "全データ削除完了"
+        );
 
-}catch(e){
+      } catch (e) {
 
-console.error(e);
+        console.error(e);
 
-alert("削除失敗");
+        alert("削除失敗");
 
-}
+      }
 
-});
+    });
 
 /* =========================
    初期化
