@@ -284,64 +284,148 @@ font-size:12px;
 
 }
 
+/* ===== 冷蔵庫カテゴリ ===== */
+
 .fridge-categories{
 
 display:grid;
 
 grid-template-columns:
 repeat(
-2,
+3,
 1fr
 );
 
-gap:15px;
+gap:12px;
 
 margin-top:20px;
 
 }
 
+/* カテゴリカード */
+
 .category-card{
 
 background:white;
 
-padding:20px;
+aspect-ratio:1/1;
 
 border-radius:20px;
+
+padding:12px;
+
+display:flex;
+
+flex-direction:column;
+
+justify-content:center;
+
+align-items:center;
 
 text-align:center;
 
 box-shadow:
-0 2px 10px
-rgba(
-0,0,0,.1
-);
+0 2px 10px rgba(0,0,0,.1);
 
 cursor:pointer;
 
 transition:.3s;
 
+overflow:hidden;
+
 }
 
 .category-card:hover{
 
-transform:
-scale(1.03);
+transform:scale(1.03);
 
 }
 
 .cat-icon{
 
-font-size:32px;
+font-size:28px;
 
-margin-bottom:10px;
+margin-bottom:8px;
+
+}
+
+.category-card h3{
+
+margin:4px 0;
+
+font-size:16px;
 
 }
 
 .category-card p{
 
-font-size:22px;
+margin:0;
+
+font-size:18px;
 
 font-weight:bold;
+
+}
+
+/* 食材詳細 */
+
+#categoryDetail{
+
+margin-top:30px;
+
+padding:20px;
+
+background:white;
+
+border-radius:20px;
+
+}
+
+.detail-food{
+
+display:flex;
+
+justify-content:space-between;
+
+padding:10px;
+
+border-bottom:1px solid #eee;
+
+}
+
+/* スマホ微調整 */
+
+@media(max-width:480px){
+
+.fridge-categories{
+
+gap:10px;
+
+}
+
+.category-card{
+
+padding:8px;
+
+}
+
+.cat-icon{
+
+font-size:24px;
+
+}
+
+.category-card h3{
+
+font-size:14px;
+
+}
+
+.category-card p{
+
+font-size:16px;
+
+}
 
 }
 
@@ -483,5 +567,42 @@ flex-wrap:wrap;
 gap:10px;
 
 }
+
+}
+
+/* 食材フォーム */
+
+#toggleFormBtn{
+
+width:100%;
+
+background:#4caf61;
+
+color:white;
+
+border:none;
+
+font-size:16px;
+
+font-weight:bold;
+
+margin-bottom:15px;
+
+}
+
+#foodForm{
+
+display:none;
+
+background:white;
+
+padding:15px;
+
+border-radius:15px;
+
+margin-bottom:20px;
+
+box-shadow:
+0 2px 8px rgba(0,0,0,.1);
 
 }

@@ -165,6 +165,36 @@ document.getElementById("addBtn")
       document.getElementById("amount").value = "";
       document.getElementById("deadline").value = "";
 
+      // 食材登録フォームを隠す
+      const toggleBtn =
+        document.getElementById(
+          "toggleFormBtn"
+        );
+
+      const foodForm =
+        document.getElementById(
+          "foodForm"
+        );
+
+      toggleBtn?.addEventListener(
+        "click",
+        () => {
+
+          const isOpen =
+            foodForm.style.display === "block";
+
+          foodForm.style.display =
+            isOpen ? "none" : "block";
+
+          toggleBtn.textContent =
+            isOpen
+              ? "＋ 食材を追加"
+              : "− 閉じる";
+
+        });
+
+
+
       loadFoods();
 
     } catch (e) {
@@ -1368,15 +1398,15 @@ function renderOCRResult() {
 
 <br><br>
 
-${detectedProducts.map((p,i)=>{
+${detectedProducts.map((p, i) => {
 
-const deadline =
-getOCRDeadline(p);
+    const deadline =
+      getOCRDeadline(p);
 
-const category =
-autoCategory(p);
+    const category =
+      autoCategory(p);
 
-return `
+    return `
 
 <div class="ocr-item">
 
@@ -1417,11 +1447,11 @@ min="1"
 id="ocr-category-${i}"
 >
 
-${categories.map(c=>`
+${categories.map(c => `
 
 <option
 value="${c.value}"
-${c.value===category?"selected":""}
+${c.value === category ? "selected" : ""}
 >
 
 ${c.label}
@@ -1453,7 +1483,7 @@ value="${deadline}"
 
 `;
 
-}).join("")}
+  }).join("")}
 
 `;
 
@@ -1666,6 +1696,44 @@ document
 
     });
 
+
+/* =========================
+食材フォーム開閉
+========================= */
+
+document
+  .getElementById(
+    "toggleFormBtn"
+  )
+  ?.addEventListener(
+    "click",
+    () => {
+
+      const foodForm =
+        document.getElementById(
+          "foodForm"
+        );
+
+      const btn =
+        document.getElementById(
+          "toggleFormBtn"
+        );
+
+      const isOpen =
+        foodForm.style.display === "block";
+
+      foodForm.style.display =
+        isOpen
+          ? "none"
+          : "block";
+
+      btn.textContent =
+        isOpen
+          ? "＋ 食材を追加"
+          : "− 閉じる";
+
+    });
+    
 /* =========================
    初期化
 ========================= */

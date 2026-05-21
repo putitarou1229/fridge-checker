@@ -48,63 +48,106 @@
 
     </section>
 
-    <!-- FOODS -->
-    <section id="foods" class="panel">
+ <!-- FOODS -->
+<section id="foods" class="panel">
 
-      <div class="form">
+  <!-- 追加ボタン -->
+  <button id="toggleFormBtn">
+    ＋ 食材を追加
+  </button>
 
-        <input id="name" placeholder="食材名">
+  <!-- 最初は隠れるフォーム -->
+  <div class="form" id="foodForm">
 
-        <input id="amount" type="number" placeholder="数量">
+    <input
+      id="name"
+      placeholder="食材名"
+    >
 
-        <select id="category">
+    <input
+      id="amount"
+      type="number"
+      placeholder="数量"
+    >
 
-          <option value="野菜">🥬 野菜</option>
-          <option value="肉">🥩 肉</option>
-          <option value="魚">🐟 魚</option>
-          <option value="乳製品">🥛 乳製品</option>
-          <option value="飲み物">🥤 飲み物</option>
-          <option value="冷凍">❄️ 冷凍</option>
-          <option value="その他">📦 その他</option>
+    <select id="category">
 
-        </select>
+      <option value="野菜">🥬 野菜</option>
+      <option value="肉">🥩 肉</option>
+      <option value="魚">🐟 魚</option>
+      <option value="乳製品">🥛 乳製品</option>
+      <option value="飲み物">🥤 飲み物</option>
+      <option value="冷凍">❄️ 冷凍</option>
+      <option value="その他">📦 その他</option>
 
-        <input id="deadline" type="date">
+    </select>
 
-        <button id="addBtn">
-          追加
-        </button>
+    <input
+      id="deadline"
+      type="date"
+    >
+
+    <button id="addBtn">
+      追加
+    </button>
+
+    <!-- 開発用 -->
+    <button id="resetBtn">
+      全データ削除
+    </button>
+
+  </div>
 
 
-        <!-- 削除ボタンデバッグ用 -->
-        <button id="resetBtn">
-          全データ削除
-        </button>
+  <!-- 検索 -->
+  <div class="search-area">
 
-      </div>
+    <input
+      id="searchInput"
+      placeholder="🔍 食材検索"
+    >
 
-      <div class="search-area">
+    <select id="filterCategory">
 
-        <input id="searchInput" placeholder="🔍 食材検索">
+      <option value="all">
+        すべて
+      </option>
 
-        <select id="filterCategory">
+      <option value="野菜">
+        🥬 野菜
+      </option>
 
-          <option value="all">すべて</option>
+      <option value="肉">
+        🥩 肉
+      </option>
 
-          <option value="野菜">🥬 野菜</option>
-          <option value="肉">🥩 肉</option>
-          <option value="魚">🐟 魚</option>
-          <option value="乳製品">🥛 乳製品</option>
-          <option value="飲み物">🥤 飲み物</option>
-          <option value="冷凍">❄️ 冷凍</option>
-          <option value="その他">📦 その他</option>
+      <option value="魚">
+        🐟 魚
+      </option>
 
-        </select>
+      <option value="乳製品">
+        🥛 乳製品
+      </option>
 
-      </div>
+      <option value="飲み物">
+        🥤 飲み物
+      </option>
 
-      <div id="categoryView"></div>
-    </section>
+      <option value="冷凍">
+        ❄️ 冷凍
+      </option>
+
+      <option value="その他">
+        📦 その他
+      </option>
+
+    </select>
+
+  </div>
+
+  <div id="categoryView"></div>
+
+</section>
 
     <!-- ANALYTICS -->
     <section id="analytics" class="panel">
