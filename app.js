@@ -6,9 +6,9 @@ import {
   addDoc,
   getDocs,
   deleteDoc,
-  doc
+  doc,
+  updateDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
 /* =========================
    Firebase
 ========================= */
@@ -30,6 +30,17 @@ let foods = [];
 let detectedProducts = [];
 let foodChart;
 
+document
+  .getElementById("amount")
+  ?.addEventListener("input", (e) => {
+
+    if (e.target.value < 1) {
+
+      e.target.value = 1;
+
+    }
+
+  });
 /* =========================
    DOM
 ========================= */
@@ -117,6 +128,34 @@ function getDays(deadline) {
   );
 }
 
+// 追加時のトースト通知機能
+function showToast(message) {
+
+  const toast =
+    document.getElementById(
+      "toast"
+    );
+
+  toast.textContent =
+    message;
+
+  toast.classList.add(
+    "show"
+  );
+
+  setTimeout(() => {
+
+    toast.classList.remove(
+      "show"
+    );
+
+  }, 2000);
+
+}
+
+
+
+
 /* =========================
    追加
 ========================= */
@@ -162,40 +201,14 @@ document.getElementById("addBtn")
       );
 
       document.getElementById("name").value = "";
-      document.getElementById("amount").value = "";
+      document.getElementById("amount").value = 1;
       document.getElementById("deadline").value = "";
 
-      // 食材登録フォームを隠す
-      const toggleBtn =
-        document.getElementById(
-          "toggleFormBtn"
-        );
+      await loadFoods();
 
-      const foodForm =
-        document.getElementById(
-          "foodForm"
-        );
-
-      toggleBtn?.addEventListener(
-        "click",
-        () => {
-
-          const isOpen =
-            foodForm.style.display === "block";
-
-          foodForm.style.display =
-            isOpen ? "none" : "block";
-
-          toggleBtn.textContent =
-            isOpen
-              ? "＋ 食材を追加"
-              : "− 閉じる";
-
-        });
-
-
-
-      loadFoods();
+      showToast(
+        `✓ ${name} を追加しました`
+      );
 
     } catch (e) {
 
@@ -226,6 +239,7 @@ async function loadFoods() {
 
     renderFoods();
     updateDashboard();
+    updateTodayAlerts();
 
   } catch (e) {
 
@@ -292,10 +306,20 @@ function renderFoods() {
 
 ${categories.map(cat => {
 
-    const count =
+    const categoryFoods =
       foods.filter(
         f => f.category === cat.name
-      ).length;
+      );
+
+    const totalAmount =
+      categoryFoods.reduce(
+        (sum, food) =>
+          sum + (parseInt(food.amount) || 1),
+        0
+      );
+
+    const typeCount =
+      categoryFoods.length;
 
     return `
 
@@ -313,20 +337,18 @@ ${cat.name}
 </h3>
 
 <p>
-${count}個
+${totalAmount}個
 </p>
+
+<small>
+${typeCount}種類
+</small>
 
 </div>
 
 `;
 
   }).join("")}
-
-</div>
-
-<div id="categoryDetail">
-
-タップして表示
 
 </div>
 
@@ -399,95 +421,146 @@ function bindCategoryCards() {
 }
 
 
-function showCategoryFoods(
-  category
-) {
+function showCategoryFoods(category) {
 
-  const detail =
-    document.getElementById(
-      "categoryDetail"
-    );
+  const modal =
+    document.getElementById("foodModal");
+
+  const modalTitle =
+    document.getElementById("modalTitle");
+
+  const modalFoods =
+    document.getElementById("modalFoods");
 
   const list =
     foods.filter(
-      f =>
-        f.category === category
+      f => f.category === category
     );
 
-  if (
-    list.length === 0
-  ) {
+  // 自動でフォーム閉まる
+  if (list.length === 0) {
 
-    detail.innerHTML = `
-
-<h2>
-${category}
-</h2>
-
-<p>
-食材なし
-</p>
-
-`;
+    document.getElementById(
+      "foodModal"
+    ).style.display = "none";
 
     return;
 
   }
 
-  detail.innerHTML = `
+  modalTitle.textContent =
+    `${category}一覧`;
 
-<h2>
+  modalFoods.innerHTML =
+    list.map(food => {
 
-${category}
+      const days =
+        getDays(food.deadline);
 
-</h2>
+      let status =
+        `🥬 ${days}日`;
 
-${list.map(food => {
+      if (days < 0) {
 
-    const days =
-      getDays(
-        food.deadline
-      );
+        status = "💀期限切れ";
 
-    let icon = "🥬";
+      } else if (days <= 3) {
 
-    if (days < 0) {
+        status = `⚠️あと${days}日`;
 
-      icon = "💀";
+      }
 
-    }
-    else if (
-      days <= 3
-    ) {
+      return `
 
-      icon = "⚠️";
+<div class="modal-food">
 
-    }
-
-    return `
-
+<!-- 通常表示 -->
 <div
-class="
-detail-food
-">
+class="food-view"
+id="view-${food.id}"
+>
 
-<div>
+<strong>${food.name}</strong>
+
+<span>
+${food.amount}個
+</span>
+
+<span>
+${food.deadline}
+</span>
+
+<span>
+${status}
+</span>
+
+</div>
+
+
+<!-- 編集表示 -->
+<div
+class="food-edit"
+id="edit-${food.id}"
+style="display:none;"
+>
 
 <strong>
-
 ${food.name}
-
 </strong>
 
-<br>
+<input
+class="edit-amount"
+data-id="${food.id}"
+type="number"
+value="${food.amount}"
+min="1"
+>
 
-${food.amount}個
+<input
+class="edit-deadline"
+data-id="${food.id}"
+type="date"
+value="${food.deadline}"
+>
 
 </div>
 
-<div>
 
-${icon}
+<div class="action-buttons">
+
+<!-- 編集 -->
+<button
+class="edit-btn"
+data-id="${food.id}"
+>
+<i class="fa-solid fa-pen"></i>
+</button>
+
+<!-- 保存 -->
+<button
+class="save-btn"
+data-id="${food.id}"
+style="display:none;"
+>
+<i class="fa-solid fa-floppy-disk"></i>
+</button>
+
+<!-- 戻る -->
+<button
+class="cancel-btn"
+data-id="${food.id}"
+style="display:none;"
+>
+<i class="fa-solid fa-rotate-left"></i>
+</button>
+
+<!-- 削除 -->
+<button
+class="delete-btn"
+data-id="${food.id}"
+>
+<i class="fa-solid fa-trash"></i>
+</button>
 
 </div>
 
@@ -495,11 +568,197 @@ ${icon}
 
 `;
 
-  }).join("")}
+    }).join("");
 
-`;
+  modal.style.display = "flex";
+
+  bindModalButtons();
 
 }
+
+
+
+function bindModalButtons() {
+
+  // 編集
+  document
+    .querySelectorAll(".edit-btn")
+    .forEach(btn => {
+
+      btn.onclick = () => {
+
+        const id = btn.dataset.id;
+
+        // 一覧隠す
+        document.getElementById(
+          `view-${id}`
+        ).style.display = "none";
+
+        // 編集表示
+        document.getElementById(
+          `edit-${id}`
+        ).style.display = "flex";
+
+        // ボタン切替
+        btn.style.display = "none";
+
+        document.querySelector(
+          `.save-btn[data-id="${id}"]`
+        ).style.display = "inline-block";
+
+        document.querySelector(
+          `.cancel-btn[data-id="${id}"]`
+        ).style.display = "inline-block";
+
+      };
+
+    });
+
+
+  // 戻る
+  document
+    .querySelectorAll(".cancel-btn")
+    .forEach(btn => {
+
+      btn.onclick = () => {
+
+        const id = btn.dataset.id;
+
+        // 編集隠す
+        document.getElementById(
+          `edit-${id}`
+        ).style.display = "none";
+
+        // 一覧表示
+        document.getElementById(
+          `view-${id}`
+        ).style.display = "flex";
+
+        // ボタン戻す
+        document.querySelector(
+          `.edit-btn[data-id="${id}"]`
+        ).style.display = "inline-block";
+
+        document.querySelector(
+          `.save-btn[data-id="${id}"]`
+        ).style.display = "none";
+
+        btn.style.display = "none";
+
+      };
+
+    });
+
+
+  // 保存
+  document
+    .querySelectorAll(".save-btn")
+    .forEach(btn => {
+
+      btn.onclick = async () => {
+
+        try {
+
+          const id = btn.dataset.id;
+
+          const amount =
+            document.querySelector(
+              `.edit-amount[data-id="${id}"]`
+            ).value;
+
+          const deadline =
+            document.querySelector(
+              `.edit-deadline[data-id="${id}"]`
+            ).value;
+
+          await updateDoc(
+            doc(db, "foods", id),
+            {
+              amount: Number(amount),
+              deadline
+            }
+          );
+
+          // データ再取得完了まで待つ
+          await loadFoods();
+
+          // 今表示しているカテゴリを再描画
+          const category =
+            document.getElementById(
+              "modalTitle"
+            ).textContent
+              .replace("一覧", "");
+
+          showCategoryFoods(category);
+
+          alert("編集を保存しました");
+
+        } catch (e) {
+
+          console.error(e);
+          alert("更新失敗");
+
+        }
+
+      };
+
+    });
+
+
+  // 削除
+  document
+    .querySelectorAll(".delete-btn")
+    .forEach(btn => {
+
+      btn.onclick = async () => {
+
+        try {
+
+          const id =
+            btn.dataset.id;
+
+          // 確認ダイアログ
+          const ok =
+            confirm(
+              "この食材を削除しますか？"
+            );
+
+          if (!ok) {
+            return;
+          }
+
+          await deleteDoc(
+            doc(db, "foods", id)
+          );
+
+          // DB再取得完了待ち
+          await loadFoods();
+
+          // 開いているカテゴリを再描画
+          const category =
+            document.getElementById(
+              "modalTitle"
+            ).textContent
+              .replace("一覧", "");
+
+          showCategoryFoods(category);
+
+        } catch (e) {
+
+          console.error(e);
+
+          alert(
+            "削除に失敗しました"
+          );
+
+        }
+
+      };
+
+    });
+
+}
+
 /* =========================
    Dashboard
 ========================= */
@@ -551,6 +810,93 @@ function updateDashboard() {
 
 }
 
+/* =========================
+   今日のお知らせ
+========================= */
+
+function updateTodayAlerts() {
+
+  const area =
+    document.getElementById(
+      "todayAlerts"
+    );
+
+  if (!area) return;
+
+  const alerts = [];
+
+  foods.forEach(food => {
+
+    const days =
+      getDays(food.deadline);
+
+    if (days < 0) {
+
+      alerts.push(
+        `💀 ${food.name} が期限切れ`
+      );
+
+    }
+    else if (days === 0) {
+
+      alerts.push(
+        `⏰ ${food.name} は今日まで`
+      );
+
+    }
+    else if (days <= 3) {
+
+      alerts.push(
+        `⚠️ ${food.name} あと${days}日`
+      );
+
+    }
+
+  });
+
+  if (alerts.length === 0) {
+
+    const messages = [
+
+      "🥬 冷蔵庫はとても健康です",
+      "🥔 食材たちが料理されるのを待っています",
+      "🍳 今のところ期限の心配はありません",
+      "🍅 冷蔵庫内の秩序は保たれています",
+      "🌱 フードロス0を継続中",
+      "🧊 冷蔵庫は元気に稼働中",
+      "🎉 今日の危険食材はありません",
+      "🛒 買い物前に冷蔵庫を確認すると節約につながります",
+      "🍴 冷蔵庫チェック完了、次は料理ですね",
+      `🥬 冷蔵庫に${foods.length}個の食材があります`,
+      `🍳 ${foods.length}個の食材で何を作りますか？`
+
+    ];
+
+    const randomMessage =
+      messages[
+      Math.floor(
+        Math.random() *
+        messages.length
+      )
+      ];
+
+    area.innerHTML = `
+    <div class="today-item">
+      ${randomMessage}
+    </div>
+  `;
+
+    return;
+  }
+
+  area.innerHTML =
+    alerts
+      .map(a =>
+        `<div class="today-item">${a}</div>`
+      )
+      .join("");
+
+}
 /* =========================
    Analytics
 ========================= */
@@ -1360,9 +1706,6 @@ function autoCategory(item) {
   return "その他";
 }
 
-/* =========================
-   OCR表示
-========================= */
 
 /* =========================
    OCR表示
@@ -1627,19 +1970,19 @@ async function saveOCRSelected() {
    検索
 ========================= */
 
-document.getElementById(
-  "searchInput"
-)?.addEventListener(
-  "input",
-  renderFoods
-);
+// document.getElementById(
+//   "searchInput"
+// )?.addEventListener(
+//   "input",
+//   renderFoods
+// );
 
-document.getElementById(
-  "filterCategory"
-)?.addEventListener(
-  "change",
-  renderFoods
-);
+// document.getElementById(
+//   "filterCategory"
+// )?.addEventListener(
+//   "change",
+//   renderFoods
+// );
 
 // 開発用削除コード
 /* =========================
@@ -1733,7 +2076,76 @@ document
           : "− 閉じる";
 
     });
-    
+
+/* =========================
+数量 +/- ボタン
+========================= */
+
+const amountInput =
+  document.getElementById("amount");
+
+document
+  .getElementById("plusBtn")
+  ?.addEventListener(
+    "click",
+    () => {
+
+      let current =
+        parseInt(amountInput.value) || 1;
+
+      amountInput.value =
+        current + 1;
+
+    });
+
+document
+  .getElementById("minusBtn")
+  ?.addEventListener(
+    "click",
+    () => {
+
+      let current =
+        parseInt(amountInput.value) || 1;
+
+      if (current > 1) {
+
+        amountInput.value =
+          current - 1;
+
+      }
+
+    });
+/* =========================
+モーダル閉じる
+========================= */
+
+document
+  .getElementById("closeModal")
+  ?.addEventListener(
+    "click",
+    () => {
+
+      document.getElementById(
+        "foodModal"
+      ).style.display = "none";
+
+    });
+
+
+
+document
+  .getElementById("closeModal")
+  ?.addEventListener(
+    "click",
+    () => {
+
+      document.getElementById(
+        "foodModal"
+      ).style.display = "none";
+
+    }
+  );
+
 /* =========================
    初期化
 ========================= */

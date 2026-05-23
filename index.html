@@ -9,6 +9,7 @@
 
   <link rel="stylesheet" href="style.css" />
   <link rel="icon" href="icon.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -21,6 +22,44 @@
     <span id="plan">Free</span>
   </header>
 
+  <!-- 今日の冷蔵庫 -->
+  <div class="hero-card">
+
+    <div class="hero-title">
+      🔔 今日の冷蔵庫
+    </div>
+
+    <div id="todayAlerts">
+
+      <div class="today-item">
+        読み込み中...
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- 食材管理モーダル -->
+
+  <div id="foodModal" class="modal">
+
+    <div class="modal-content">
+
+      <div class="modal-header">
+
+        <h2 id="modalTitle"></h2>
+
+        <button id="closeModal">
+          ×
+        </button>
+
+      </div>
+
+      <div id="modalFoods"></div>
+
+    </div>
+
+  </div>
 
   <main class="container">
 
@@ -48,106 +87,107 @@
 
     </section>
 
- <!-- FOODS -->
-<section id="foods" class="panel">
+    <!-- FOODS -->
+    <section id="foods" class="panel">
 
-  <!-- 追加ボタン -->
-  <button id="toggleFormBtn">
-    ＋ 食材を追加
-  </button>
+      <!-- 追加ボタン -->
+      <button id="toggleFormBtn">
+        ＋ 食材を追加
+      </button>
 
-  <!-- 最初は隠れるフォーム -->
-  <div class="form" id="foodForm">
+      <!-- 最初は隠れるフォーム -->
+      <div class="form" id="foodForm">
 
-    <input
-      id="name"
-      placeholder="食材名"
-    >
+        <div class="top-input-row">
 
-    <input
-      id="amount"
-      type="number"
-      placeholder="数量"
-    >
+          <input id="name" placeholder="食材名">
 
-    <select id="category">
+          <div class="amount-box">
 
-      <option value="野菜">🥬 野菜</option>
-      <option value="肉">🥩 肉</option>
-      <option value="魚">🐟 魚</option>
-      <option value="乳製品">🥛 乳製品</option>
-      <option value="飲み物">🥤 飲み物</option>
-      <option value="冷凍">❄️ 冷凍</option>
-      <option value="その他">📦 その他</option>
+            <button class="amount-btn" id="minusBtn">
+              −
+            </button>
 
-    </select>
+            <input id="amount" type="text" value="1" readonly>
 
-    <input
-      id="deadline"
-      type="date"
-    >
+            <button class="amount-btn plus-btn" id="plusBtn">
+              +
+            </button>
 
-    <button id="addBtn">
-      追加
-    </button>
+          </div>
 
-    <!-- 開発用 -->
-    <button id="resetBtn">
-      全データ削除
-    </button>
+        </div> <select id="category">
 
-  </div>
+          <option value="野菜">🥬 野菜</option>
+          <option value="肉">🥩 肉</option>
+          <option value="魚">🐟 魚</option>
+          <option value="乳製品">🥛 乳製品</option>
+          <option value="飲み物">🥤 飲み物</option>
+          <option value="冷凍">❄️ 冷凍</option>
+          <option value="その他">📦 その他</option>
+
+        </select>
+
+        <input id="deadline" type="date">
+
+        <button id="addBtn">
+          追加
+        </button>
+
+        <!-- 開発用 -->
+        <button id="resetBtn">
+          全データ削除
+        </button>
+
+      </div>
 
 
-  <!-- 検索 -->
-  <div class="search-area">
+      <!-- 検索
+      <div class="search-area">
 
-    <input
-      id="searchInput"
-      placeholder="🔍 食材検索"
-    >
+        <input id="searchInput" placeholder="🔍 食材検索">
 
-    <select id="filterCategory">
+        <select id="filterCategory">
 
-      <option value="all">
-        すべて
-      </option>
+          <option value="all">
+            すべて
+          </option>
 
-      <option value="野菜">
-        🥬 野菜
-      </option>
+          <option value="野菜">
+            🥬 野菜
+          </option>
 
-      <option value="肉">
-        🥩 肉
-      </option>
+          <option value="肉">
+            🥩 肉
+          </option>
 
-      <option value="魚">
-        🐟 魚
-      </option>
+          <option value="魚">
+            🐟 魚
+          </option>
 
-      <option value="乳製品">
-        🥛 乳製品
-      </option>
+          <option value="乳製品">
+            🥛 乳製品
+          </option>
 
-      <option value="飲み物">
-        🥤 飲み物
-      </option>
+          <option value="飲み物">
+            🥤 飲み物
+          </option>
 
-      <option value="冷凍">
-        ❄️ 冷凍
-      </option>
+          <option value="冷凍">
+            ❄️ 冷凍
+          </option>
 
-      <option value="その他">
-        📦 その他
-      </option>
+          <option value="その他">
+            📦 その他
+          </option>
 
-    </select>
+        </select>
 
-  </div>
+      </div> -->
 
-  <div id="categoryView"></div>
+      <div id="categoryView"></div>
 
-</section>
+    </section>
 
     <!-- ANALYTICS -->
     <section id="analytics" class="panel">
@@ -219,6 +259,7 @@
 
   </main>
 
+
   <!-- BOTTOM NAV -->
   <nav class="bottom-nav">
 
@@ -250,7 +291,8 @@
   </nav>
 
   <script type="module" src="app.js"></script>
-
+  
+  <div id="toast"></div>
 </body>
 
 </html>
