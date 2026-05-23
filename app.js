@@ -60,6 +60,14 @@ const scanStatus =
 const ocrResult =
   document.getElementById("ocrResult");
 
+receiptInput?.addEventListener(
+  "change",
+  () => {
+
+    scanBtn.click();
+
+  }
+);
 /* =========================
    タブ
 ========================= */
@@ -858,7 +866,7 @@ function updateTodayAlerts() {
 
     const messages = [
 
-      "🥬 冷蔵庫はとても健康です",
+      "🥬 今日1品作ると食材が活躍します",
       "🥔 食材たちが料理されるのを待っています",
       "🍳 今のところ期限の心配はありません",
       "🍅 冷蔵庫内の秩序は保たれています",

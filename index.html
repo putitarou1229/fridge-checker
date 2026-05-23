@@ -228,7 +228,7 @@
     <!-- RECIPES -->
     <section id="recipes" class="panel">
 
-      <h2>🍳 AIレシピ</h2>
+      <h2>🍳 AIレシピ　*現在使用できません*</h2>
 
       <textarea id="ingredients" placeholder="食材を入力"></textarea>
 
@@ -245,10 +245,10 @@
 
       <h2>📷 レシートスキャン</h2>
 
-      <input type="file" id="receiptInput" accept="image/*">
+      <input type="file" id="receiptInput" accept="image/*" capture="environment">
 
       <button id="scanBtn">
-        OCR開始
+        スキャンする
       </button>
 
       <div id="scanStatus"></div>
@@ -291,7 +291,7 @@
   </nav>
 
   <script type="module" src="app.js"></script>
-  
+
   <div id="toast"></div>
 </body>
 
