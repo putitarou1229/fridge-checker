@@ -7,17 +7,27 @@ import {
   getDocs,
   deleteDoc,
   doc,
-  updateDoc
+  setDoc,
+  updateDoc,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+import {
+  getMessaging,
+  getToken,
+  onMessage
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
 /* =========================
    Firebase
 ========================= */
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "fridge-checker-fd18e.firebaseapp.com",
-  projectId: "fridge-checker-fd18e"
-};
+    apiKey: "AIzaSyB-RHabxjy1Zb5TOsBZfKLtBffq4Aa4Yn4",
+    authDomain: "fridge-checker-fd18e.firebaseapp.com",
+    projectId: "fridge-checker-fd18e",
+    storageBucket: "fridge-checker-fd18e.firebasestorage.app",
+    messagingSenderId: "285614759556",
+    appId: "1:285614759556:web:6c41d639bf9f1d80526cd1"
+  };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
@@ -1293,19 +1303,71 @@ function isFoodLike(line) {
 
 function getOCRDeadline(name) {
 
-  const days =
-    foodDB[name] || 3;
+  // 個別ルール（優先）
+  const foodDB = {
 
-  const date =
-    new Date();
+    "乳": 7,
+    "卵": 14,
+    "納豆": 5,
+    "ヨーグルト": 7,
+    "チーズ": 14,
+
+    "牛肉": 3,
+    "豚肉": 3,
+    "鶏肉": 3,
+
+    "レタス": 4,
+    "キャベツ": 7,
+    "にんじん": 14,
+    "玉ねぎ": 30
+
+  };
+
+  // 商品名に含まれているか
+  for (const key in foodDB) {
+
+    if (name.includes(key)) {
+
+      const date = new Date();
+
+      date.setDate(
+        date.getDate() + foodDB[key]
+      );
+
+      return date
+        .toISOString()
+        .split("T")[0];
+
+    }
+
+  }
+
+  // カテゴリ別デフォルト
+  const category = autoCategory(name);
+
+  const categoryDays = {
+
+    "肉": 3,
+    "魚": 2,
+    "野菜": 7,
+    "乳製品": 7,
+    "飲み物": 30,
+    "冷凍": 90,
+    "その他": 14
+
+  };
+
+  const date = new Date();
 
   date.setDate(
-    date.getDate() + days
+    date.getDate() +
+    (categoryDays[category] || 7)
   );
 
   return date
     .toISOString()
     .split("T")[0];
+
 }
 
 /* =========================
@@ -1653,67 +1715,43 @@ scanBtn?.addEventListener(
 
 // 自動カテゴリ選択
 function autoCategory(item) {
-
   item = item.toLowerCase();
 
-  // 肉
-  if (
-    item.includes("牛") ||
-    item.includes("豚") ||
-    item.includes("鶏") ||
-    item.includes("ひき肉")
-  ) {
-    return "肉";
-  }
+  const categories = [
+    {
+      name: "肉",
+      keywords: ["牛", "豚", "鶏", "ひき肉"]
+    },
+    {
+      name: "野菜",
+      keywords: ["キャベツ", "にんじん", "玉ねぎ", "もやし"]
+    },
+    {
+      name: "魚",
+      keywords: ["鮭", "魚", "まぐろ", "さば"]
+    },
+    {
+      name: "乳製品",
+      keywords: ["乳", "チーズ", "ヨーグルト"]
+    },
+    {
+      name: "飲み物",
+      keywords: ["コーラ", "茶", "飲料", "ジュース"]
+    },
+    {
+      name: "冷凍",
+      keywords: ["冷凍", "アイス"]
+    }
+  ];
 
-  // 野菜
-  if (
-    item.includes("キャベツ") ||
-    item.includes("にんじん") ||
-    item.includes("玉ねぎ") ||
-    item.includes("もやし")
-  ) {
-    return "野菜";
-  }
-
-  // 魚
-  if (
-    item.includes("鮭") ||
-    item.includes("まぐろ") ||
-    item.includes("さば")
-  ) {
-    return "魚";
-  }
-
-  // 乳製品
-  if (
-    item.includes("牛乳") ||
-    item.includes("チーズ") ||
-    item.includes("ヨーグルト")
-  ) {
-    return "乳製品";
-  }
-
-  // 飲み物
-  if (
-    item.includes("コーラ") ||
-    item.includes("お茶") ||
-    item.includes("ジュース")
-  ) {
-    return "飲み物";
-  }
-
-  // 冷凍
-  if (
-    item.includes("冷凍") ||
-    item.includes("アイス")
-  ) {
-    return "冷凍";
+  for (const category of categories) {
+    if (category.keywords.some(keyword => item.includes(keyword))) {
+      return category.name;
+    }
   }
 
   return "その他";
 }
-
 
 /* =========================
    OCR表示
@@ -2161,3 +2199,97 @@ document
 loadFoods();
 
 switchTab("dashboard");
+
+
+/* =========================
+   Messaging
+========================= */
+
+const messaging =
+  getMessaging(app);
+
+
+/* 通知初期化 */
+
+async function initNotification() {
+
+  try {
+
+    if ("serviceWorker" in navigator) {
+
+      await navigator.serviceWorker.register(
+        "/firebase-messaging-sw.js"
+      );
+
+    }
+
+    const permission =
+      await Notification.requestPermission();
+
+    if (permission !== "granted") {
+
+      console.log("通知拒否");
+      return;
+
+    }
+
+    const token =
+      await getToken(
+        messaging,
+        {
+          vapidKey:
+          "BElx1pR9ADM3q3tcDJVkjTk-d9Ju4XvipY-UO8u4fpcITOycJdDSFphYUfzri_4m9DM4CHBG53Gx03aO1sJ-0k8"
+        }
+      );
+
+    if (!token) return;
+
+    console.log(
+      "FCM Token:",
+      token
+    );
+
+    /* Firestore保存 */
+
+    await setDoc(
+      doc(
+        db,
+        "fcmTokens",
+        token
+      ),
+      {
+        token,
+        createdAt: Date.now()
+      }
+    );
+
+    /* Functionsへトークン送信 */
+
+    await fetch(
+      "https://us-central1-fridge-checker-fd18e.cloudfunctions.net/subscribeTopic",
+      {
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+          token
+        })
+      }
+    );
+
+    console.log(
+      "foodsトピック登録完了"
+    );
+
+  }
+
+  catch(e){
+
+    console.error(e);
+
+  }
+
+}
+
+initNotification();

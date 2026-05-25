@@ -1,3 +1,14 @@
+const CACHE_NAME = "fridge-v1";
+
+const urlsToCache = [
+  "/",
+  "/index.html",
+  "/style.css",
+  "/script.js"
+];
+
+
+
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open("fridge-cache").then((cache) => {

@@ -7,6 +7,8 @@
 
   <title>Fridge SaaS</title>
 
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4CAF50">
   <link rel="stylesheet" href="style.css" />
   <link rel="icon" href="icon.png">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -245,7 +247,7 @@
 
       <h2>📷 レシートスキャン</h2>
 
-      <input type="file" id="receiptInput" accept="image/*" capture="environment">
+      <input type="file" id="receiptInput" accept="image/*">
 
       <button id="scanBtn">
         スキャンする
@@ -293,6 +295,8 @@
   <script type="module" src="app.js"></script>
 
   <div id="toast"></div>
+
+  
 </body>
 
 </html>
