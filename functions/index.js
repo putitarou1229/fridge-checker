@@ -6,9 +6,7 @@ const vision = require("@google-cloud/vision");
    Google Vision
 ========================= */
 
-const client = new vision.ImageAnnotatorClient({
-  keyFilename: "service-account.json",
-});
+const client = new vision.ImageAnnotatorClient();
 
 /* =========================
    OCR

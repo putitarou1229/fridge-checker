@@ -70,14 +70,14 @@ const scanStatus =
 const ocrResult =
   document.getElementById("ocrResult");
 
-receiptInput?.addEventListener(
-  "change",
-  () => {
+// receiptInput?.addEventListener(
+//   "change",
+//   () => {
 
-    scanBtn.click();
+//     scanBtn.click();
 
-  }
-);
+//   }
+// );
 /* =========================
    タブ
 ========================= */
