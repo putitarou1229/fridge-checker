@@ -21,13 +21,13 @@ import {
 ========================= */
 
 const firebaseConfig = {
-    apiKey: "AIzaSyB-RHabxjy1Zb5TOsBZfKLtBffq4Aa4Yn4",
-    authDomain: "fridge-checker-fd18e.firebaseapp.com",
-    projectId: "fridge-checker-fd18e",
-    storageBucket: "fridge-checker-fd18e.firebasestorage.app",
-    messagingSenderId: "285614759556",
-    appId: "1:285614759556:web:6c41d639bf9f1d80526cd1"
-  };
+  apiKey: "AIzaSyB-RHabxjy1Zb5TOsBZfKLtBffq4Aa4Yn4",
+  authDomain: "fridge-checker-fd18e.firebaseapp.com",
+  projectId: "fridge-checker-fd18e",
+  storageBucket: "fridge-checker-fd18e.firebasestorage.app",
+  messagingSenderId: "285614759556",
+  appId: "1:285614759556:web:6c41d639bf9f1d80526cd1"
+};
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
@@ -1249,6 +1249,48 @@ function isGarbage(line) {
   ) {
     return true;
   }
+  /* 日付 */
+
+  if (
+    /\d{4}\/\d{1,2}\/\d{1,2}/
+      .test(line)
+  ) {
+    return true;
+  }
+
+  /* 時刻 */
+
+  if (
+    /^\d{1,2}:\d{2}$/
+      .test(line)
+  ) {
+    return true;
+  }
+
+  /* レジ番号 */
+
+  if (
+    /レジ\s?\d+/.test(line)
+  ) {
+    return true;
+  }
+
+  /* 取引番号 */
+
+  if (
+    /取\d+/.test(line)
+  ) {
+    return true;
+  }
+
+  /* 登録番号 */
+
+  if (
+    /T\d{13}/.test(line)
+  ) {
+    return true;
+  }
+
 }
 
 /* =========================
@@ -1532,7 +1574,87 @@ scanBtn?.addEventListener(
                 )
                 .filter(line => line);
 
-            /* 商品名クリーンアップ */
+            /* =========================
+               OCR前半ノイズ除去
+            ========================= */
+
+            const headerWords = [
+
+              "領収証",
+              "領収書",
+              "AEON",
+              "イオン",
+              "株式会社",
+              "登録番号",
+              "TEL",
+              "FAX",
+              "昭島店",
+              "取",
+              "日付",
+              "カード",
+              "クレジット",
+              "売上票",
+              "お客様控え"
+
+            ];
+
+            /* =========================
+               商品っぽい開始位置を探す
+            ========================= */
+
+            /* =========================
+   上部ヘッダーノイズ除去
+========================= */
+
+            while (lines.length > 0) {
+
+              const line = lines[0];
+
+              /* ヘッダー判定 */
+
+              const isHeader =
+                headerWords.some(word =>
+                  line.includes(word)
+                );
+
+              /* 日本語含むか */
+
+              const hasJapanese =
+                /[ぁ-んァ-ヶ一-龠]/.test(line);
+
+              /* 金額だけ */
+
+              const isPrice =
+                /^¥?\d+$/.test(line);
+
+              /* 条件一致なら削除 */
+
+              if (
+
+                isHeader ||
+                !hasJapanese ||
+                isPrice ||
+                line.length <= 1
+
+              ) {
+
+                lines.shift();
+
+              }
+
+              /* 商品っぽい行に来たら停止 */
+
+              else {
+
+                break;
+
+              }
+
+            }
+
+            /* =========================
+               商品名クリーンアップ
+            ========================= */
 
             lines = lines.map(line => {
 
@@ -1556,11 +1678,16 @@ scanBtn?.addEventListener(
                 /* kg除去 */
                 .replace(/\d+kg/g, "")
 
+                /* コロン除去 */
+                .replace(/[:：]/g, "")
+
                 .trim();
 
             }).filter(line => line);
 
-            /* 合計以降削除 */
+            /* =========================
+               合計以降削除
+            ========================= */
 
             const stopWords = [
 
@@ -1571,7 +1698,9 @@ scanBtn?.addEventListener(
               "現金",
               "お預り",
               "お釣り",
-              "CARD"
+              "CARD",
+              "クレジット",
+              "売上票"
 
             ];
 
@@ -1592,37 +1721,77 @@ scanBtn?.addEventListener(
 
             }
 
-            /* フィルタ */
+            /* =========================
+               最終フィルタ
+            ========================= */
+
             console.log("OCR lines:", lines);
+
             detectedProducts =
               [...new Set(
 
                 lines
+
                   .filter(line => {
 
+                    /* 無意味ワード */
+
+                    const ngWords = [
+
+                      "AEON",
+                      "イオン",
+                      "昭島店",
+                      "登録番号",
+                      "領収証",
+                      "領収書",
+                      "お客様控え",
+                      "カード会社",
+                      "VISA",
+                      "FAX",
+                      "TEL",
+                      "レジ",
+                      "取",
+                      "クレジット"
+
+                    ];
+
                     if (
-                      ignoreWords.some(
-                        word =>
-                          line.includes(word)
+                      ngWords.some(word =>
+                        line.includes(word)
                       )
                     ) {
                       return false;
                     }
 
+                    /* 数字多すぎ除外 */
+
+                    const numCount =
+                      (line.match(/\d/g) || []).length;
+
+                    if (numCount >= 5) {
+                      return false;
+                    }
+
+                    /* 金額だけ除外 */
+
                     if (
-                      isPriceLike(line)
+                      /^¥?\d+$/.test(line)
                     ) {
                       return false;
                     }
+
+                    /* 日本語なし除外 */
+
+                    if (
+                      !/[ぁ-んァ-ヶ一-龠]/.test(line)
+                    ) {
+                      return false;
+                    }
+
+                    /* ゴミ除外 */
 
                     if (
                       isGarbage(line)
-                    ) {
-                      return false;
-                    }
-
-                    if (
-                      !isFoodLike(line)
                     ) {
                       return false;
                     }
@@ -1632,6 +1801,8 @@ scanBtn?.addEventListener(
                   })
 
                   .map(line => {
+
+                    /* OCR補正辞書 */
 
                     Object.keys(
                       replaceMap
@@ -1670,10 +1841,10 @@ scanBtn?.addEventListener(
                 "商品を検出できませんでした";
 
               ocrResult.innerHTML = `
-                <p>
-                  真上から撮影してください
-                </p>
-              `;
+    <p>
+      真上から撮影してください
+    </p>
+  `;
 
               return;
             }
@@ -2238,7 +2409,7 @@ async function initNotification() {
         messaging,
         {
           vapidKey:
-          "BElx1pR9ADM3q3tcDJVkjTk-d9Ju4XvipY-UO8u4fpcITOycJdDSFphYUfzri_4m9DM4CHBG53Gx03aO1sJ-0k8"
+            "BElx1pR9ADM3q3tcDJVkjTk-d9Ju4XvipY-UO8u4fpcITOycJdDSFphYUfzri_4m9DM4CHBG53Gx03aO1sJ-0k8"
         }
       );
 
@@ -2268,11 +2439,11 @@ async function initNotification() {
     await fetch(
       "https://us-central1-fridge-checker-fd18e.cloudfunctions.net/subscribeTopic",
       {
-        method:"POST",
-        headers:{
-          "Content-Type":"application/json"
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
         },
-        body:JSON.stringify({
+        body: JSON.stringify({
           token
         })
       }
@@ -2284,7 +2455,7 @@ async function initNotification() {
 
   }
 
-  catch(e){
+  catch (e) {
 
     console.error(e);
 
