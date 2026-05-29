@@ -327,14 +327,24 @@ font-size:16px;
 
 .category-card p{
 
-margin:0;
 
-font-size:18px;
+font-size:14px;
 
 font-weight:bold;
 
-}
+width:100%;
 
+text-align:center;
+
+display:flex;
+
+justify-content:center;
+
+align-items:center;
+
+margin:0 auto;
+
+}
 /* ===== カテゴリ詳細 ===== */
 
 #categoryDetail{
@@ -706,6 +716,75 @@ min-width:0;
 padding:6px;
 
 border-radius:14px;
+
+}
+
+.analytics-grid{
+
+grid-template-columns:
+repeat(3,minmax(0,1fr));
+
+gap:8px;
+
+}
+
+.analytics-card,
+.ranking-card{
+
+padding:10px;
+
+border-radius:12px;
+
+}
+
+.analytics-card h3,
+.ranking-card h3{
+
+font-size:12px;
+
+}
+
+.analytics-card p,
+.ranking-card p{
+
+font-size:14px;
+
+}
+
+.analytics-card,
+.ranking-card{
+
+padding:8px;
+
+min-width:0;
+
+overflow:hidden;
+
+}
+
+.analytics-card h3,
+.ranking-card h3{
+
+font-size:11px;
+
+line-height:1.2;
+
+word-break:keep-all;
+
+overflow-wrap:break-word;
+
+margin-bottom:4px;
+
+}
+
+.analytics-card p,
+.ranking-card p{
+
+font-size:13px;
+
+line-height:1.2;
+
+margin:0;
 
 }
 

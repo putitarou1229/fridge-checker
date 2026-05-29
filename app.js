@@ -29,9 +29,45 @@ const firebaseConfig = {
   appId: "1:285614759556:web:6c41d639bf9f1d80526cd1"
 };
 
+import {
+  getAuth,
+  signInAnonymously,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
 const app = initializeApp(firebaseConfig);
+
 const db = getFirestore(app);
 
+const auth = getAuth(app);
+
+signInAnonymously(auth)
+  .then(() => {
+
+    console.log("匿名ログイン成功");
+
+    onAuthStateChanged(auth, (user) => {
+
+      if (user) {
+
+        console.log("ログイン中");
+
+        console.log(user.uid);
+
+        loadFoods();
+
+      } else {
+
+        console.log("未ログイン");
+
+      }
+
+    });
+
+  })
+  .catch((error) => {
+    console.error("匿名ログイン失敗:", error);
+  });
 /* =========================
    状態
 ========================= */
@@ -2367,7 +2403,7 @@ document
    初期化
 ========================= */
 
-loadFoods();
+
 
 switchTab("dashboard");
 
