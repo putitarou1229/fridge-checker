@@ -14,6 +14,12 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 import {
+  initializeAppCheck,
+  ReCaptchaV3Provider
+}
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app-check.js";
+
+import {
   getMessaging,
   getToken,
   onMessage
@@ -38,6 +44,16 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const app = initializeApp(firebaseConfig);
+
+const appCheck = initializeAppCheck(app, {
+
+  provider: new ReCaptchaV3Provider(
+    "6Lc43QItAAAAAFvkmnk-bBNzdWee7TV_Eku4nQrm"
+  ),
+
+  isTokenAutoRefreshEnabled: true
+
+});
 
 const db = getFirestore(app);
 
