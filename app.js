@@ -1548,7 +1548,7 @@ scanBtn?.addEventListener(
     }
 
     scanStatus.textContent =
-      "OCR実行中...";
+      "Scanning Now...";
 
     ocrResult.innerHTML = "";
 
