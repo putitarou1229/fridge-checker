@@ -15,6 +15,7 @@ const client = new vision.ImageAnnotatorClient();
 exports.ocr = onRequest(
   {
     cors: true,
+    enforceAppCheck: true,
   },
 
   async (req, res) => {
@@ -159,7 +160,10 @@ console.error(e);
 });
 
 exports.subscribeTopic = onRequest(
-  { cors:true },
+  {
+    cors:true,
+    enforceAppCheck:true
+  },
 
   async(req,res)=>{
 
