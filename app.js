@@ -7,6 +7,7 @@ import {
   getDocs,
   deleteDoc,
   doc,
+  getDoc,
   setDoc,
   updateDoc,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -46,23 +47,33 @@ signInAnonymously(auth)
 
     console.log("匿名ログイン成功");
 
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => {
 
-      if (user) {
+  if (user) {
 
-        console.log("ログイン中");
+    console.log("ログイン中");
 
-        console.log(user.uid);
+    console.log(user.uid);
 
-        loadFoods();
+    const userRef = doc(db, "users", user.uid);
 
-      } else {
+    const userSnap = await getDoc(userRef);
 
-        console.log("未ログイン");
+    if (!userSnap.exists()) {
 
-      }
+      await setDoc(userRef, {
+        ocrCount: 0
+      });
 
-    });
+      console.log("ユーザーデータ作成");
+
+    }
+
+    loadFoods();
+
+  }
+
+});
 
   })
   .catch((error) => {
