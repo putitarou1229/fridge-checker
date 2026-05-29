@@ -10,6 +10,7 @@ import {
   getDoc,
   setDoc,
   updateDoc,
+  increment
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 import {
@@ -49,31 +50,31 @@ signInAnonymously(auth)
 
     onAuthStateChanged(auth, async (user) => {
 
-  if (user) {
+      if (user) {
 
-    console.log("ログイン中");
+        console.log("ログイン中");
 
-    console.log(user.uid);
+        console.log(user.uid);
 
-    const userRef = doc(db, "users", user.uid);
+        const userRef = doc(db, "users", user.uid);
 
-    const userSnap = await getDoc(userRef);
+        const userSnap = await getDoc(userRef);
 
-    if (!userSnap.exists()) {
+        if (!userSnap.exists()) {
 
-      await setDoc(userRef, {
-        ocrCount: 0
-      });
+          await setDoc(userRef, {
+            ocrCount: 0
+          });
 
-      console.log("ユーザーデータ作成");
+          console.log("ユーザーデータ作成");
 
-    }
+        }
 
-    loadFoods();
+        loadFoods();
 
-  }
+      }
 
-});
+    });
 
   })
   .catch((error) => {
@@ -1147,6 +1148,39 @@ window.getRecipe = async function () {
   }
 };
 
+// OCR回数制限
+onAuthStateChanged(auth, async (user) => {
+
+  if (user) {
+
+    console.log("ログイン中");
+
+    console.log(user.uid);
+
+    const userRef = doc(db, "users", user.uid);
+
+    const userSnap = await getDoc(userRef);
+
+    if (!userSnap.exists()) {
+
+      await setDoc(userRef, {
+        ocrCount: 0
+      });
+
+      console.log("ユーザーデータ作成");
+
+    }
+
+    loadFoods();
+
+  } else {
+
+    console.log("未ログイン");
+
+  }
+
+});
+
 /* =========================
    OCR期限DB
 ========================= */
@@ -1466,6 +1500,24 @@ function getOCRDeadline(name) {
 scanBtn?.addEventListener(
   "click",
   async () => {
+
+    const uid = auth.currentUser.uid;
+
+    const userRef = doc(db, "users", uid);
+
+    const userSnap = await getDoc(userRef);
+
+    const ocrCount =
+      userSnap.data().ocrCount || 0;
+
+    if (ocrCount >= 10) {
+
+      alert(
+        "OCR回数上限です"
+      );
+
+      return;
+    }
 
     const file =
       receiptInput?.files[0];
@@ -1895,6 +1947,10 @@ scanBtn?.addEventListener(
 
               return;
             }
+
+           await updateDoc(userRef, {
+  ocrCount: increment(1)
+});
 
             scanStatus.textContent =
               `${detectedProducts.length}件検出`;
