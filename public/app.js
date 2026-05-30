@@ -1,3 +1,5 @@
+let familyId = null;
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 
 import {
@@ -17,7 +19,7 @@ import {
   initializeAppCheck,
   ReCaptchaV3Provider
 }
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app-check.js";
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app-check.js";
 
 import {
   getMessaging,
@@ -65,37 +67,83 @@ signInAnonymously(auth)
     console.log("匿名ログイン成功");
 
     onAuthStateChanged(auth, async (user) => {
+      if (!user) return;
 
-      if (user) {
+      console.log("ログイン中");
+      console.log(user.uid);
 
-        console.log("ログイン中");
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
 
-        console.log(user.uid);
+      let userData;
 
-        const userRef = doc(db, "users", user.uid);
+      if (!userSnap.exists()) {
+        userData = {
+          ocrCount: 0,
+          familyId: null
+        };
 
-        const userSnap = await getDoc(userRef);
+        await setDoc(userRef, userData);
 
-        if (!userSnap.exists()) {
-
-          await setDoc(userRef, {
-            ocrCount: 0
-          });
-
-          console.log("ユーザーデータ作成");
-
-        }
-
-        loadFoods();
-
+        console.log("ユーザーデータ作成");
+      } else {
+        userData = userSnap.data();
       }
 
-    });
+      // ★ここが安全な取得ポイント
+      familyId = userData.familyId || null;
 
+      updateFamilyUI();
+      loadFoods();
+    });
   })
+
   .catch((error) => {
     console.error("匿名ログイン失敗:", error);
   });
+
+// 家族作成
+window.createFamily = async function () {
+
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const familyRef = await addDoc(collection(db, "families"), {
+    members: [user.uid],
+    createdAt: Date.now()
+  });
+
+  await updateDoc(doc(db, "users", user.uid), {
+    familyId: familyRef.id
+  });
+
+  familyId = familyRef.id;
+  updateFamilyUI();
+
+  alert("家族を作成しました：" + familyId);
+
+  loadFoods();
+};
+
+// 家族参加
+window.joinFamily = async function (inputFamilyId) {
+
+  const user = auth.currentUser;
+  if (!user) return;
+
+  await updateDoc(doc(db, "users", user.uid), {
+    familyId: inputFamilyId
+  });
+
+  familyId = inputFamilyId;
+  updateFamilyUI();
+
+
+  alert("家族に参加しました");
+
+  loadFoods();
+};
+
 /* =========================
    状態
 ========================= */
@@ -134,16 +182,23 @@ const scanStatus =
 const ocrResult =
   document.getElementById("ocrResult");
 
-// receiptInput?.addEventListener(
-//   "change",
-//   () => {
+// 家族共有
+function updateFamilyUI() {
+  const el = document.getElementById("familyStatus");
 
-//     scanBtn.click();
+  if (!el) return;
 
-//   }
-// );
+  if (!familyId) {
+    el.textContent = "未参加";
+    el.style.color = "#e53935";
+  } else {
+    el.textContent = "参加中: " + familyId;
+    el.style.color = "#2e7d32";
+  }
+}
+
 /* =========================
-   タブ
+ タブ
 ========================= */
 
 function switchTab(tabId) {
@@ -272,13 +327,14 @@ document.getElementById("addBtn")
     try {
 
       await addDoc(
-        collection(db, "foods"),
+        collection(db, "families", familyId, "foods"),
         {
-          name,
-          amount,
+          name: detectedProducts[i],
+          amount: qty,
           category,
           deadline,
-          createdAt: Date.now()
+          createdAt: Date.now(),
+          createdBy: auth.currentUser.uid
         }
       );
 
@@ -311,7 +367,7 @@ async function loadFoods() {
 
     const snap =
       await getDocs(
-        collection(db, "foods")
+        collection(db, "families", familyId, "foods")
       );
 
     foods = snap.docs.map(d => ({
@@ -460,7 +516,7 @@ function bindDeleteButtons() {
               btn.dataset.id;
 
             await deleteDoc(
-              doc(db, "foods", id)
+              doc(db, "families", familyId, "foods", id)
             );
 
             loadFoods();
@@ -754,7 +810,7 @@ function bindModalButtons() {
             ).value;
 
           await updateDoc(
-            doc(db, "foods", id),
+            doc(db, "families", familyId, "foods", id),
             {
               amount: Number(amount),
               deadline
@@ -1526,7 +1582,7 @@ scanBtn?.addEventListener(
     const ocrCount =
       userSnap.data().ocrCount || 0;
 
-    if (ocrCount >= 10) {
+    if (ocrCount >= 5) {
 
       alert(
         "OCR回数上限です"
@@ -1964,9 +2020,9 @@ scanBtn?.addEventListener(
               return;
             }
 
-           await updateDoc(userRef, {
-  ocrCount: increment(1)
-});
+            await updateDoc(userRef, {
+              ocrCount: increment(1)
+            });
 
             scanStatus.textContent =
               `${detectedProducts.length}件検出`;
