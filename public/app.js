@@ -12,7 +12,8 @@ import {
   getDoc,
   setDoc,
   updateDoc,
-  increment
+  increment,
+  arrayUnion
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 import {
@@ -109,9 +110,10 @@ window.createFamily = async function () {
   if (!user) return;
 
   const familyRef = await addDoc(collection(db, "families"), {
-    members: [user.uid],
-    createdAt: Date.now()
-  });
+  owner: user.uid,
+  members: [user.uid],
+  createdAt: Date.now()
+});
 
   await updateDoc(doc(db, "users", user.uid), {
     familyId: familyRef.id
@@ -125,25 +127,47 @@ window.createFamily = async function () {
   loadFoods();
 };
 
-// 家族参加
 window.joinFamily = async function (inputFamilyId) {
+
+  if (!inputFamilyId?.trim()) {
+    alert("家族IDを入力してください");
+    return;
+  }
+
+  const familyRef =
+    doc(db, "families", inputFamilyId);
+
+  const familySnap =
+    await getDoc(familyRef);
+
+  if (!familySnap.exists()) {
+    alert("家族IDが存在しません");
+    return;
+  }
 
   const user = auth.currentUser;
   if (!user) return;
 
-  await updateDoc(doc(db, "users", user.uid), {
-    familyId: inputFamilyId
-  });
+  await updateDoc(
+    doc(db, "users", user.uid),
+    {
+      familyId: inputFamilyId
+    }
+  );
+
+  // メンバー追加
+ await updateDoc(familyRef, {
+  members: arrayUnion(user.uid)
+});
 
   familyId = inputFamilyId;
-  updateFamilyUI();
 
+  updateFamilyUI();
 
   alert("家族に参加しました");
 
-  loadFoods();
+  await loadFoods();
 };
-
 /* =========================
    状態
 ========================= */
@@ -326,11 +350,21 @@ document.getElementById("addBtn")
 
     try {
 
+      if (!familyId) {
+        alert("先に家族を作成してください");
+        return;
+      }
+
       await addDoc(
-        collection(db, "families", familyId, "foods"),
+        collection(
+          db,
+          "families",
+          familyId,
+          "foods"
+        ),
         {
-          name: detectedProducts[i],
-          amount: qty,
+          name,
+          amount: Number(amount),
           category,
           deadline,
           createdAt: Date.now(),
@@ -363,12 +397,18 @@ document.getElementById("addBtn")
 
 async function loadFoods() {
 
+  if (!familyId) {
+    console.log("familyId未設定");
+    foods = [];
+    renderFoods();
+    return;
+  }
+
   try {
 
-    const snap =
-      await getDocs(
-        collection(db, "families", familyId, "foods")
-      );
+    const snap = await getDocs(
+      collection(db, "families", familyId, "foods")
+    );
 
     foods = snap.docs.map(d => ({
       id: d.id,
@@ -866,7 +906,7 @@ function bindModalButtons() {
           }
 
           await deleteDoc(
-            doc(db, "foods", id)
+            doc(db, "families", familyId, "foods", id)
           );
 
           // DB再取得完了待ち
@@ -1220,38 +1260,6 @@ window.getRecipe = async function () {
   }
 };
 
-// OCR回数制限
-onAuthStateChanged(auth, async (user) => {
-
-  if (user) {
-
-    console.log("ログイン中");
-
-    console.log(user.uid);
-
-    const userRef = doc(db, "users", user.uid);
-
-    const userSnap = await getDoc(userRef);
-
-    if (!userSnap.exists()) {
-
-      await setDoc(userRef, {
-        ocrCount: 0
-      });
-
-      console.log("ユーザーデータ作成");
-
-    }
-
-    loadFoods();
-
-  } else {
-
-    console.log("未ログイン");
-
-  }
-
-});
 
 /* =========================
    OCR期限DB
@@ -1374,8 +1382,6 @@ function isGarbage(line) {
     return true;
   }
 
-  return false;
-
   if (
     /個|本|枚|袋|パック/.test(line) &&
     /\d/.test(line)
@@ -1443,6 +1449,8 @@ function isGarbage(line) {
   ) {
     return true;
   }
+
+  return false;
 
 }
 
@@ -2286,6 +2294,11 @@ function toggleOCRAll(flag) {
 
 async function saveOCRSelected() {
 
+  if (!familyId) {
+    alert("先に家族を作成してください");
+    return;
+  }
+
   let count = 0;
 
   for (
@@ -2322,18 +2335,19 @@ async function saveOCRSelected() {
     try {
 
       await addDoc(
-        collection(db, "foods"),
+        collection(
+          db,
+          "families",
+          familyId,
+          "foods"
+        ),
         {
-          name:
-            detectedProducts[i],
-
-          amount: qty,
-
-          category: category,
-
+          name: detectedProducts[i],
+          amount: Number(qty),
+          category,
           deadline,
-
-          createdAt: Date.now()
+          createdAt: Date.now(),
+          createdBy: auth.currentUser.uid
         }
       );
 
@@ -2398,7 +2412,12 @@ document
 
         const snap =
           await getDocs(
-            collection(db, "foods")
+            collection(
+              db,
+              "families",
+              familyId,
+              "foods"
+            )
           );
 
         for (const item of snap.docs) {
@@ -2406,6 +2425,8 @@ document
           await deleteDoc(
             doc(
               db,
+              "families",
+              familyId,
               "foods",
               item.id
             )
