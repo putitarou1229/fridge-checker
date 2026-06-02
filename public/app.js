@@ -79,23 +79,35 @@ signInAnonymously(auth)
       let userData;
 
       if (!userSnap.exists()) {
+
+        const familyRef = await addDoc(
+          collection(db, "families"),
+          {
+            owner: user.uid,
+            members: [user.uid],
+            createdAt: Date.now()
+          }
+        );
+
         userData = {
           ocrCount: 0,
-          familyId: null
+          familyId: familyRef.id
         };
 
         await setDoc(userRef, userData);
 
-        console.log("ユーザーデータ作成");
+        console.log("初回家族作成");
+
       } else {
+
         userData = userSnap.data();
+
       }
 
-      // ★ここが安全な取得ポイント
       familyId = userData.familyId || null;
 
       updateFamilyUI();
-      loadFoods();
+      await loadFoods();
     });
   })
 
@@ -106,25 +118,45 @@ signInAnonymously(auth)
 // 家族作成
 window.createFamily = async function () {
 
-  const user = auth.currentUser;
-  if (!user) return;
+  try {
 
-  const familyRef = await addDoc(collection(db, "families"), {
-  owner: user.uid,
-  members: [user.uid],
-  createdAt: Date.now()
-});
+    const user = auth.currentUser;
 
-  await updateDoc(doc(db, "users", user.uid), {
-    familyId: familyRef.id
-  });
+    if (!user) {
+      console.log("userなし");
+      return;
+    }
 
-  familyId = familyRef.id;
-  updateFamilyUI();
+    const familyRef = await addDoc(
+      collection(db, "families"),
+      {
+        owner: user.uid,
+        members: [user.uid],
+        createdAt: Date.now()
+      }
+    );
 
-  alert("家族を作成しました：" + familyId);
+    console.log("family作成成功", familyRef.id);
 
-  loadFoods();
+    await updateDoc(
+      doc(db, "users", user.uid),
+      {
+        familyId: familyRef.id
+      }
+    );
+
+    familyId = familyRef.id;
+
+    updateFamilyUI();
+
+    alert("家族作成完了");
+
+  } catch (e) {
+
+    console.error("家族作成エラー", e);
+
+  }
+
 };
 
 window.joinFamily = async function (inputFamilyId) {
@@ -156,9 +188,9 @@ window.joinFamily = async function (inputFamilyId) {
   );
 
   // メンバー追加
- await updateDoc(familyRef, {
-  members: arrayUnion(user.uid)
-});
+  await updateDoc(familyRef, {
+    members: arrayUnion(user.uid)
+  });
 
   familyId = inputFamilyId;
 
@@ -397,6 +429,9 @@ document.getElementById("addBtn")
 
 async function loadFoods() {
 
+  console.log("loadFoods開始");
+  console.log("familyId=", familyId);
+
   if (!familyId) {
     console.log("familyId未設定");
     foods = [];
@@ -410,6 +445,8 @@ async function loadFoods() {
       collection(db, "families", familyId, "foods")
     );
 
+    console.log("foods件数", snap.size);
+
     foods = snap.docs.map(d => ({
       id: d.id,
       ...d.data()
@@ -421,7 +458,8 @@ async function loadFoods() {
 
   } catch (e) {
 
-    console.error(e);
+    console.error("loadFoodsエラー", e);
+    alert(e.message);
 
   }
 }
