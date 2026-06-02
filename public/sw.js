@@ -1,25 +1,38 @@
-const CACHE_NAME = "fridge-v1";
+const CACHE_NAME = "fridge-v2";
 
 const urlsToCache = [
   "/",
   "/index.html",
+  "/app.js",
   "/style.css",
-  "/script.js"
+  "/privacy.html",
+  "/terms.html"
 ];
-
-
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open("fridge-cache").then((cache) => {
-      return cache.addAll([
-        "./",
-        "./index.html",
-        "./app.js",
-        "./style.css"
-      ]);
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(urlsToCache);
     })
   );
+
+  self.skipWaiting();
+});
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys.map((key) => {
+          if (key !== CACHE_NAME) {
+            return caches.delete(key);
+          }
+        })
+      )
+    )
+  );
+
+  self.clients.claim();
 });
 
 self.addEventListener("fetch", (event) => {
