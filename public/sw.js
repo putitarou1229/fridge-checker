@@ -1,4 +1,4 @@
-const CACHE_NAME = "fridge-v2";
+const CACHE_NAME = "fridge-v2.0.0";
 
 const urlsToCache = [
   "/",

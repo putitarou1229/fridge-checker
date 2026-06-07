@@ -84,6 +84,7 @@ signInAnonymously(auth)
           collection(db, "families"),
           {
             owner: user.uid,
+            name: "マイグループ",
             members: [user.uid],
             createdAt: Date.now()
           }
@@ -162,7 +163,7 @@ window.createFamily = async function () {
 window.joinFamily = async function (inputFamilyId) {
 
   if (!inputFamilyId?.trim()) {
-    alert("家族IDを入力してください");
+    alert("招待コードを入力してください");
     return;
   }
 
@@ -196,10 +197,140 @@ window.joinFamily = async function (inputFamilyId) {
 
   updateFamilyUI();
 
-  alert("家族に参加しました");
+  alert("グループに参加しました");
 
   await loadFoods();
 };
+
+// グループ名の設定
+async function updateGroupName() {
+
+  const el =
+    document.getElementById("familyGroupName");
+
+  if (!el) return;
+
+  if (!familyId) {
+
+    el.textContent = "グループ未設定";
+    return;
+
+  }
+
+  const familySnap =
+    await getDoc(
+      doc(db, "families", familyId)
+    );
+
+  if (!familySnap.exists()) return;
+
+  const data = familySnap.data();
+
+  el.textContent =
+    data.name || "グループ未設定";
+
+}
+
+// グループ名を変更する
+const editGroupNameBtn =
+  document.getElementById("editGroupNameBtn");
+
+if (editGroupNameBtn) {
+
+  editGroupNameBtn.addEventListener(
+    "click",
+    async () => {
+
+      if (!familyId) {
+        alert("グループに参加してください");
+        return;
+      }
+
+      const newName =
+        prompt("グループ名を入力");
+
+      if (!newName?.trim()) return;
+
+      await updateDoc(
+        doc(db, "families", familyId),
+        {
+          name: newName.trim()
+        }
+      );
+
+      updateGroupName();
+      updateHeaderTitle();
+
+      showToast("グループ名を変更しました");
+
+    }
+  );
+
+}
+
+// グループ名を取得して右上に表示する
+async function updateHeaderTitle() {
+
+  const planEl =
+    document.getElementById("plan");
+
+  if (!planEl) return;
+
+  if (!familyId) {
+    planEl.textContent = "Free";
+    return;
+  }
+
+  const familySnap =
+    await getDoc(
+      doc(db, "families", familyId)
+    );
+
+  if (!familySnap.exists()) {
+    planEl.textContent = "Free";
+    return;
+  }
+
+  const data = familySnap.data();
+
+  planEl.textContent =
+    `${data.name || "自分"}の冷蔵庫`;
+
+}
+
+// メンバー数を数える関数
+async function updateMemberCount() {
+
+  const memberEl =
+    document.getElementById("familyMembers");
+
+  if (!memberEl) return;
+
+  if (!familyId) {
+    memberEl.textContent = "0人参加中";
+    return;
+  }
+
+  const familyRef =
+    doc(db, "families", familyId);
+
+  const familySnap =
+    await getDoc(familyRef);
+
+  if (!familySnap.exists()) {
+    memberEl.textContent = "0人参加中";
+    return;
+  }
+
+  const data = familySnap.data();
+
+  const count =
+    data.members?.length || 0;
+
+  memberEl.textContent =
+    `${count}人参加中`;
+}
+
 /* =========================
    状態
 ========================= */
@@ -248,9 +379,80 @@ function updateFamilyUI() {
     el.textContent = "未参加";
     el.style.color = "#e53935";
   } else {
-    el.textContent = "参加中: " + familyId;
+    el.textContent = "参加中";
     el.style.color = "#2e7d32";
   }
+  updateMemberCount();
+  updateGroupName();
+  updateHeaderTitle();
+}
+
+/* =========================
+   招待コード表示
+========================= */
+
+const showCodeBtn =
+  document.getElementById("showCodeBtn");
+
+const inviteArea =
+  document.getElementById("inviteArea");
+
+const myFamilyCode =
+  document.getElementById("myFamilyCode");
+
+const copyFamilyCode =
+  document.getElementById("copyFamilyCode");
+
+if (showCodeBtn) {
+
+  showCodeBtn.addEventListener("click", () => {
+
+    if (!familyId) {
+      alert("共有IDがありません");
+      return;
+    }
+
+    myFamilyCode.value = familyId;
+
+    if (
+      inviteArea.style.display === "none" ||
+      inviteArea.style.display === ""
+    ) {
+
+      inviteArea.style.display = "block";
+      showCodeBtn.textContent = "招待コード非表示";
+
+    } else {
+
+      inviteArea.style.display = "none";
+      showCodeBtn.textContent = "招待コード表示";
+
+    }
+
+  });
+
+}
+
+if (copyFamilyCode) {
+
+  copyFamilyCode.addEventListener("click", async () => {
+
+    try {
+
+      await navigator.clipboard.writeText(
+        myFamilyCode.value
+      );
+
+      showToast("招待コードをコピーしました");
+
+    } catch (err) {
+
+      alert("コピーに失敗しました");
+
+    }
+
+  });
+
 }
 
 /* =========================
@@ -383,7 +585,7 @@ document.getElementById("addBtn")
     try {
 
       if (!familyId) {
-        alert("先に家族を作成してください");
+        alert("先にグループを作成してください");
         return;
       }
 
@@ -1305,7 +1507,7 @@ window.getRecipe = async function () {
 
 const foodDB = {
 
-  "牛乳": 7,
+  "牛乳": 14,
   "卵": 14,
   "納豆": 5,
   "レタス": 4,

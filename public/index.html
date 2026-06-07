@@ -93,11 +93,18 @@
       <div class="family-banner" id="familyBanner">
 
         <div class="family-left">
-          <div class="family-label">👨‍👩‍👧 家族共有</div>
+          <div class="family-label">👨‍👩‍👧 グループ共有</div>
           <div class="family-status" id="familyStatus">
             未参加
           </div>
+          <div class="family-members" id="familyMembers">
+            0人参加中
+          </div>
+          <div class="family-group-name" id="familyGroupName">
+            グループ未設定
+          </div>
         </div>
+
 
         <div class="family-right">
 
@@ -106,9 +113,22 @@
           <button class="family-btn join" onclick="joinFamily(document.getElementById('familyInput').value)">
             参加
           </button>
+          <button id="editGroupNameBtn" class="family-btn create">
+            グループ名変更
+          </button>
+          <button id="showCodeBtn" class="family-btn create">
+            ID表示
+          </button>
 
-          <button class="family-btn create" onclick="createFamily()">
-            作成
+
+        </div>
+
+        <div id="inviteArea" style="display:none;margin-top:10px;">
+
+          <input id="myFamilyCode" class="family-input" readonly>
+
+          <button id="copyFamilyCode" class="family-btn create">
+            コピー
           </button>
 
         </div>

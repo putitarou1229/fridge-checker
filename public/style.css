@@ -1205,3 +1205,38 @@ overflow-x:hidden;
   font-size:11px;
   color:#999;
 }
+
+.fridge-categories{
+  width:100%;
+  max-width:100%;
+}
+
+.category-card{
+  min-width:0;
+  overflow:hidden;
+}
+
+.category-card h3{
+  word-break:break-word;
+  overflow-wrap:anywhere;
+}
+
+.category-card p{
+  word-break:break-word;
+  overflow-wrap:anywhere;
+}
+
+@media(max-width:480px){
+
+  .food-edit{
+    flex-direction:column;
+    width:100%;
+  }
+
+  .food-edit input,
+  .food-edit select,
+  .food-edit button{
+    width:100%;
+  }
+
+}

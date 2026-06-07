@@ -82,92 +82,111 @@ const db = admin.firestore();
 ========================= */
 
 exports.checkExpiry = onSchedule(
-{
-schedule:"0 9 * * *",
-timeZone:"Asia/Tokyo"
-},
+  {
+    schedule: "0 9 * * *",
+    timeZone: "Asia/Tokyo"
+  },
 
-async()=>{
+  async () => {
 
-try{
+    try {
 
-const snapshot =
-await db.collection("foods").get();
+      const familiesSnap =
+        await db.collection("families").get();
 
-const today=new Date();
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
 
-const warningFoods=[];
+      let warningFoods = [];
 
-snapshot.forEach(doc=>{
+      for (const familyDoc of familiesSnap.docs) {
 
-const food=doc.data();
+        const foodsSnap =
+          await db
+            .collection("families")
+            .doc(familyDoc.id)
+            .collection("foods")
+            .get();
 
-if(!food.deadline) return;
+        foodsSnap.forEach(foodDoc => {
 
-const deadline=
-new Date(food.deadline);
+          const food = foodDoc.data();
 
-today.setHours(0,0,0,0);
-deadline.setHours(0,0,0,0);
+          if (!food.deadline) return;
 
-const days=
-Math.ceil(
-(deadline-today)
-/86400000
-);
+          const deadline =
+            new Date(food.deadline);
 
-if(days>=0 && days<=3){
+          deadline.setHours(0, 0, 0, 0);
 
-warningFoods.push(
-`${food.name}(${days}日)`
-);
+          const days =
+            Math.ceil(
+              (deadline - today)
+              / 86400000
+            );
 
-}
+          if (days === 3) {
+            
+            warningFoods.push(
+              `${food.name}(あと3日)`
+            );
 
-});
+          }
 
-if(warningFoods.length===0){
+          if (days === 0) {
 
-console.log("通知なし");
-return;
+            warningFoods.push(
+              `${food.name}(今日まで)`
+            );
 
-}
+          }
 
-await admin.messaging().send({
+        });
 
-topic:"foods",
+      }
 
-notification:{
-title:"冷蔵庫チェッカー",
-body:
-`期限注意: ${
-warningFoods
-.slice(0,3)
-.join("、")
-}`
-}
+      if (warningFoods.length === 0) {
 
-});
+        console.log("通知なし");
+        return;
 
-console.log("通知送信完了");
+      }
 
-}catch(e){
+      await admin.messaging().send({
 
-console.error(e);
+        topic: "foods",
 
-}
+        notification: {
+          title: "冷蔵庫チェッカー",
+          body:
+            `期限注意: ${warningFoods
+              .slice(0, 3)
+              .join("、")
+            }`
+        }
 
-});
+      });
+
+      console.log("通知送信完了");
+
+    }
+    catch (e) {
+
+      console.error(e);
+
+    }
+
+  });
 
 exports.subscribeTopic = onRequest(
   {
-    cors:true,
-    enforceAppCheck:true
+    cors: true,
+    enforceAppCheck: true
   },
 
-  async(req,res)=>{
+  async (req, res) => {
 
-    try{
+    try {
 
       const token =
         req.body.token;
@@ -180,19 +199,19 @@ exports.subscribeTopic = onRequest(
         );
 
       res.json({
-        success:true
+        success: true
       });
 
     }
 
-    catch(e){
+    catch (e) {
 
       console.error(e);
 
       res.status(500)
-      .json({
-        error:e.message
-      });
+        .json({
+          error: e.message
+        });
 
     }
 
