@@ -19,303 +19,324 @@
 </head>
 
 <body>
+  <!-- グーグルログイン画面 -->
+  <div id="loginScreen" style="display:none;">
 
-  <!-- HEADER -->
-  <header class="topbar">
-    <h1>🥬 Fridge Checker</h1>
-    <span id="plan">Free</span>
-  </header>
+    <div class="login-card">
 
-  <!-- 今日の冷蔵庫 -->
-  <div class="hero-card">
+      <h1>🥬 Fridge Checker</h1>
 
-    <div class="hero-title">
-      🔔 今日の冷蔵庫
-    </div>
+      <p>食材データを安全に保存</p>
+      <p>機種変更でも引き継ぎ可能</p>
+      <p>家族共有対応</p>
 
-    <div id="todayAlerts">
-
-      <div class="today-item">
-        読み込み中...
-      </div>
+      <button id="googleLoginBtn">
+        Googleでログイン
+      </button>
 
     </div>
 
   </div>
 
-  <!-- 食材管理モーダル -->
 
-  <div id="foodModal" class="modal">
 
-    <div class="modal-content">
+  <div id="appScreen" style="display:none;">
+    <!-- HEADER -->
+    <header class="topbar">
+      <h1>🥬 Fridge Checker</h1>
+      <span id="plan">Free</span>
+    </header>
 
-      <div class="modal-header">
+    <!-- 今日の冷蔵庫 -->
+    <div class="hero-card">
 
-        <h2 id="modalTitle"></h2>
-
-        <button id="closeModal">
-          ×
-        </button>
-
+      <div class="hero-title">
+        🔔 今日の冷蔵庫
       </div>
 
-      <div id="modalFoods"></div>
+      <div id="todayAlerts">
+
+        <div class="today-item">
+          読み込み中...
+        </div>
+
+      </div>
 
     </div>
 
+    <!-- 食材管理モーダル -->
+
+    <div id="foodModal" class="modal">
+
+      <div class="modal-content">
+
+        <div class="modal-header">
+
+          <h2 id="modalTitle"></h2>
+
+          <button id="closeModal">
+            ×
+          </button>
+
+        </div>
+
+        <div id="modalFoods"></div>
+
+      </div>
+
+    </div>
+
+    <main class="container">
+
+      <!-- DASHBOARD -->
+      <section id="dashboard" class="panel active">
+
+        <div class="kpi-grid">
+
+          <div class="kpi-card danger-card" id="expiredCard">
+            <h3>💀 期限切れ</h3>
+            <p id="dangerCount">0</p>
+          </div>
+
+          <div class="kpi-card warning-card" id="soonCard">
+            <h3>⚠️ 3日以内</h3>
+            <p id="warningCount">0</p>
+          </div>
+
+          <div class="kpi-card safe-card" id="safeCard">
+            <h3>👍 安全</h3>
+            <p id="safeCount">0</p>
+          </div>
+
+        </div>
+
+        <!-- 家族共有 -->
+        <div class="family-banner" id="familyBanner">
+
+          <div class="family-left">
+            <div class="family-label">👨‍👩‍👧 グループ共有</div>
+            <div class="family-status" id="familyStatus">
+              未参加
+            </div>
+            <div class="family-members" id="familyMembers">
+              0人参加中
+            </div>
+            <div class="family-group-name" id="familyGroupName">
+              グループ未設定
+            </div>
+          </div>
+
+
+          <div class="family-right">
+
+            <input id="familyInput" class="family-input" placeholder="招待コード">
+
+            <button class="family-btn join" onclick="joinFamily(document.getElementById('familyInput').value)">
+              参加
+            </button>
+            <button id="editGroupNameBtn" class="family-btn create">
+              グループ名変更
+            </button>
+            <button id="showCodeBtn" class="family-btn create">
+              ID表示
+            </button>
+
+
+          </div>
+
+          <div id="inviteArea" style="display:none;margin-top:10px;">
+
+            <input id="myFamilyCode" class="family-input" readonly>
+
+            <button id="copyFamilyCode" class="family-btn create">
+              コピー
+            </button>
+
+          </div>
+
+        </div>
+        <footer class="footer">
+
+          <a href="privacy.html">
+            プライバシーポリシー
+          </a>
+
+          <a href="terms.html">
+            利用規約
+          </a>
+
+          <a href="https://forms.gle/ZDp6oygLjAh2EtAcA" target="_blank">
+            お問い合わせ
+          </a>
+
+          <div class="footer-copy">
+            © 2026 冷蔵庫チェッカー
+      </section>
+
+      <!-- FOODS -->
+      <section id="foods" class="panel">
+
+        <!-- 追加ボタン -->
+        <button id="toggleFormBtn">
+          ＋ 食材を追加
+        </button>
+
+        <!-- 最初は隠れるフォーム -->
+        <div class="form" id="foodForm">
+
+          <div class="top-input-row">
+
+            <input id="name" placeholder="食材名">
+
+            <div class="amount-box">
+
+              <button class="amount-btn" id="minusBtn">
+                −
+              </button>
+
+              <input id="amount" type="text" value="1" readonly>
+
+              <button class="amount-btn plus-btn" id="plusBtn">
+                +
+              </button>
+
+            </div>
+
+          </div> <select id="category">
+
+            <option value="野菜">🥬 野菜</option>
+            <option value="肉">🥩 肉</option>
+            <option value="魚">🐟 魚</option>
+            <option value="乳製品">🥛 乳製品</option>
+            <option value="飲み物">🥤 飲み物</option>
+            <option value="冷凍">❄️ 冷凍</option>
+            <option value="その他">📦 その他</option>
+
+          </select>
+
+          <input id="deadline" type="date">
+
+          <button id="addBtn">
+            追加
+          </button>
+
+          <!-- 開発用 -->
+          <button id="resetBtn">
+            全データ削除
+          </button>
+
+        </div>
+
+
+
+        <div id="categoryView"></div>
+
+      </section>
+
+      <!-- ANALYTICS -->
+      <section id="analytics" class="panel">
+
+        <h2>📊 フードロス分析</h2>
+
+        <div class="analytics-grid">
+
+          <div class="analytics-card">
+            <h4>📦 総食材数</h4>
+            <p id="totalFoods">0</p>
+          </div>
+
+          <div class="analytics-card">
+            <h4>💀 廃棄率</h4>
+            <p id="lossRate">0%</p>
+          </div>
+
+          <div class="analytics-card">
+            <h4>⚠️ 危険食材</h4>
+            <p id="dangerFoods">0</p>
+          </div>
+
+        </div>
+
+        <canvas id="foodChart"></canvas>
+
+        <div class="ranking-card">
+
+          <h3>🥇 カテゴリランキング</h3>
+
+          <div id="rankingArea"></div>
+
+        </div>
+
+      </section>
+      <!-- RECIPES*現在使用不可 -->
+      <section id="recipes" class="panel">
+
+        <h2>🍳 AIレシピ　*現在使用できません*</h2>
+
+        <textarea id="ingredients" placeholder="食材を入力"></textarea>
+
+        <button id="recipeBtn">
+          レシピ生成
+        </button>
+
+        <div id="recipeResult"></div>
+
+      </section>
+
+      <!-- SCAN -->
+      <section id="scan" class="panel">
+
+        <h2>📷 レシートスキャン</h2>
+
+        <input type="file" id="receiptInput" accept="image/*">
+
+        <button id="scanBtn">
+          スキャンする
+        </button>
+
+        <div id="scanStatus"></div>
+
+        <div id="ocrResult"></div>
+
+      </section>
+
+    </main>
+
+
+    <!-- BOTTOM NAV -->
+    <nav class="bottom-nav">
+
+      <button data-tab="dashboard">
+        🏠
+        <span>ホーム</span>
+      </button>
+
+      <button data-tab="foods">
+        🥬
+        <span>食材</span>
+      </button>
+
+      <button data-tab="analytics">
+        📊
+        <span>統計</span>
+      </button>
+
+      <button data-tab="recipes">
+        🤖
+        <span>AI</span>
+      </button>
+
+      <button data-tab="scan">
+        📷
+        <span>Scan</span>
+      </button>
+
+    </nav>
+
+    <script type="module" src="app.js"></script>
+
+    <div id="toast"></div>
   </div>
-
-  <main class="container">
-
-    <!-- DASHBOARD -->
-    <section id="dashboard" class="panel active">
-
-      <div class="kpi-grid">
-
-        <div class="kpi-card danger-card">
-          <h3>💀 期限切れ</h3>
-          <p id="dangerCount">0</p>
-        </div>
-
-        <div class="kpi-card warning-card">
-          <h3>⚠️ 3日以内</h3>
-          <p id="warningCount">0</p>
-        </div>
-
-        <div class="kpi-card safe-card">
-          <h3>🥬 安全</h3>
-          <p id="safeCount">0</p>
-        </div>
-
-      </div>
-
-      <!-- 家族共有 -->
-      <div class="family-banner" id="familyBanner">
-
-        <div class="family-left">
-          <div class="family-label">👨‍👩‍👧 グループ共有</div>
-          <div class="family-status" id="familyStatus">
-            未参加
-          </div>
-          <div class="family-members" id="familyMembers">
-            0人参加中
-          </div>
-          <div class="family-group-name" id="familyGroupName">
-            グループ未設定
-          </div>
-        </div>
-
-
-        <div class="family-right">
-
-          <input id="familyInput" class="family-input" placeholder="招待コード">
-
-          <button class="family-btn join" onclick="joinFamily(document.getElementById('familyInput').value)">
-            参加
-          </button>
-          <button id="editGroupNameBtn" class="family-btn create">
-            グループ名変更
-          </button>
-          <button id="showCodeBtn" class="family-btn create">
-            ID表示
-          </button>
-
-
-        </div>
-
-        <div id="inviteArea" style="display:none;margin-top:10px;">
-
-          <input id="myFamilyCode" class="family-input" readonly>
-
-          <button id="copyFamilyCode" class="family-btn create">
-            コピー
-          </button>
-
-        </div>
-
-      </div>
-      <footer class="footer">
-
-        <a href="privacy.html">
-          プライバシーポリシー
-        </a>
-
-        <a href="terms.html">
-          利用規約
-        </a>
-
-        <a href="https://forms.gle/ZDp6oygLjAh2EtAcA" target="_blank">
-          お問い合わせ
-        </a>
-
-        <div class="footer-copy">
-          © 2026 冷蔵庫チェッカー
-    </section>
-
-    <!-- FOODS -->
-    <section id="foods" class="panel">
-
-      <!-- 追加ボタン -->
-      <button id="toggleFormBtn">
-        ＋ 食材を追加
-      </button>
-
-      <!-- 最初は隠れるフォーム -->
-      <div class="form" id="foodForm">
-
-        <div class="top-input-row">
-
-          <input id="name" placeholder="食材名">
-
-          <div class="amount-box">
-
-            <button class="amount-btn" id="minusBtn">
-              −
-            </button>
-
-            <input id="amount" type="text" value="1" readonly>
-
-            <button class="amount-btn plus-btn" id="plusBtn">
-              +
-            </button>
-
-          </div>
-
-        </div> <select id="category">
-
-          <option value="野菜">🥬 野菜</option>
-          <option value="肉">🥩 肉</option>
-          <option value="魚">🐟 魚</option>
-          <option value="乳製品">🥛 乳製品</option>
-          <option value="飲み物">🥤 飲み物</option>
-          <option value="冷凍">❄️ 冷凍</option>
-          <option value="その他">📦 その他</option>
-
-        </select>
-
-        <input id="deadline" type="date">
-
-        <button id="addBtn">
-          追加
-        </button>
-
-        <!-- 開発用 -->
-        <button id="resetBtn">
-          全データ削除
-        </button>
-
-      </div>
-
-
-
-      <div id="categoryView"></div>
-
-    </section>
-
-    <!-- ANALYTICS -->
-    <section id="analytics" class="panel">
-
-      <h2>📊 フードロス分析</h2>
-
-      <div class="analytics-grid">
-
-        <div class="analytics-card">
-          <h4>📦 総食材数</h4>
-          <p id="totalFoods">0</p>
-        </div>
-
-        <div class="analytics-card">
-          <h4>💀 廃棄率</h4>
-          <p id="lossRate">0%</p>
-        </div>
-
-        <div class="analytics-card">
-          <h4>⚠️ 危険食材</h4>
-          <p id="dangerFoods">0</p>
-        </div>
-
-      </div>
-
-      <canvas id="foodChart"></canvas>
-
-      <div class="ranking-card">
-
-        <h3>🥇 カテゴリランキング</h3>
-
-        <div id="rankingArea"></div>
-
-      </div>
-
-    </section>
-    <!-- RECIPES*現在使用不可 -->
-    <section id="recipes" class="panel">
-
-      <h2>🍳 AIレシピ　*現在使用できません*</h2>
-
-      <textarea id="ingredients" placeholder="食材を入力"></textarea>
-
-      <button id="recipeBtn">
-        レシピ生成
-      </button>
-
-      <div id="recipeResult"></div>
-
-    </section>
-
-    <!-- SCAN -->
-    <section id="scan" class="panel">
-
-      <h2>📷 レシートスキャン</h2>
-
-      <input type="file" id="receiptInput" accept="image/*">
-
-      <button id="scanBtn">
-        スキャンする
-      </button>
-
-      <div id="scanStatus"></div>
-
-      <div id="ocrResult"></div>
-
-    </section>
-
-  </main>
-
-
-  <!-- BOTTOM NAV -->
-  <nav class="bottom-nav">
-
-    <button data-tab="dashboard">
-      🏠
-      <span>ホーム</span>
-    </button>
-
-    <button data-tab="foods">
-      🥬
-      <span>食材</span>
-    </button>
-
-    <button data-tab="analytics">
-      📊
-      <span>統計</span>
-    </button>
-
-    <button data-tab="recipes">
-      🤖
-      <span>AI</span>
-    </button>
-
-    <button data-tab="scan">
-      📷
-      <span>Scan</span>
-    </button>
-
-  </nav>
-
-  <script type="module" src="app.js"></script>
-
-  <div id="toast"></div>
-
 </body>
 
 </html>

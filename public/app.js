@@ -16,11 +16,11 @@ import {
   arrayUnion
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-import {
-  initializeAppCheck,
-  ReCaptchaV3Provider
-}
-  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app-check.js";
+// import {
+//   initializeAppCheck,
+//   ReCaptchaV3Provider
+// }
+//   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app-check.js";
 
 import {
   getMessaging,
@@ -42,78 +42,107 @@ const firebaseConfig = {
 
 import {
   getAuth,
-  signInAnonymously,
+  GoogleAuthProvider,
+  signInWithPopup,
   onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";const app = initializeApp(firebaseConfig);
 
-const app = initializeApp(firebaseConfig);
+// const appCheck = initializeAppCheck(app, {
 
-const appCheck = initializeAppCheck(app, {
+//   provider: new ReCaptchaV3Provider(
+//     "6Lc43QItAAAAAFvkmnk-bBNzdWee7TV_Eku4nQrm"
+//   ),
 
-  provider: new ReCaptchaV3Provider(
-    "6Lc43QItAAAAAFvkmnk-bBNzdWee7TV_Eku4nQrm"
-  ),
+//   isTokenAutoRefreshEnabled: true
 
-  isTokenAutoRefreshEnabled: true
-
-});
+// });
 
 const db = getFirestore(app);
 
 const auth = getAuth(app);
 
-signInAnonymously(auth)
-  .then(() => {
+const provider = new GoogleAuthProvider();
 
-    console.log("匿名ログイン成功");
 
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) return;
+const loginScreen =
+  document.getElementById("loginScreen");
 
-      console.log("ログイン中");
-      console.log(user.uid);
+const appScreen =
+  document.getElementById("appScreen");
 
-      const userRef = doc(db, "users", user.uid);
-      const userSnap = await getDoc(userRef);
 
-      let userData;
+// グーグルログイン機能
+onAuthStateChanged(auth, async (user) => {
 
-      if (!userSnap.exists()) {
+    console.log("onAuthStateChanged発火");
+  console.log("user=", user);
 
-        const familyRef = await addDoc(
-          collection(db, "families"),
-          {
-            owner: user.uid,
-            name: "マイグループ",
-            members: [user.uid],
-            createdAt: Date.now()
-          }
-        );
+  if (!user) {
+    document.getElementById("loginScreen").style.display = "flex";
+    document.getElementById("appScreen").style.display = "none";
+    return;
+  }
 
-        userData = {
-          ocrCount: 0,
-          familyId: familyRef.id
-        };
+    console.log("userあり");
+  console.log(user.uid);
 
-        await setDoc(userRef, userData);
+  document.getElementById("loginScreen").style.display = "none";
+  document.getElementById("appScreen").style.display = "block";
 
-        console.log("初回家族作成");
+  console.log("ログイン中");
+  console.log(user.uid);
 
-      } else {
+  const userRef = doc(db, "users", user.uid);
+  const userSnap = await getDoc(userRef);
 
-        userData = userSnap.data();
+  let userData;
 
+  if (!userSnap.exists()) {
+
+    const familyRef = await addDoc(
+      collection(db, "families"),
+      {
+        owner: user.uid,
+        name: "マイグループ",
+        members: [user.uid],
+        createdAt: Date.now()
       }
+    );
 
-      familyId = userData.familyId || null;
+    userData = {
+      ocrCount: 0,
+      familyId: familyRef.id
+    };
 
-      updateFamilyUI();
-      await loadFoods();
-    });
-  })
+    await setDoc(userRef, userData);
 
-  .catch((error) => {
-    console.error("匿名ログイン失敗:", error);
+  } else {
+
+    userData = userSnap.data();
+
+  }
+
+  familyId = userData.familyId || null;
+
+  updateFamilyUI();
+  await loadFoods();
+
+});
+
+document
+  .getElementById("googleLoginBtn")
+  .addEventListener("click", async () => {
+
+    try {
+
+      await signInWithPopup(auth, provider);
+
+    } catch (e) {
+
+      console.error(e);
+
+    }
+
   });
 
 // 家族作成
@@ -338,6 +367,9 @@ async function updateMemberCount() {
 let foods = [];
 let detectedProducts = [];
 let foodChart;
+let currentFilter = "all";
+
+
 
 document
   .getElementById("amount")
@@ -1177,6 +1209,80 @@ function bindModalButtons() {
 
 }
 
+// ダッシュボードから食材みる
+function showStatusFoods(type) {
+
+  const modal =
+    document.getElementById("foodModal");
+
+  const modalTitle =
+    document.getElementById("modalTitle");
+
+  const modalFoods =
+    document.getElementById("modalFoods");
+
+  let list = [];
+
+  if (type === "expired") {
+
+    list = foods.filter(
+      food => getDays(food.deadline) < 0
+    );
+
+    modalTitle.textContent = "期限切れ一覧";
+  }
+
+  else if (type === "soon") {
+
+    list = foods.filter(food => {
+
+      const days =
+        getDays(food.deadline);
+
+      return days >= 0 && days <= 3;
+
+    });
+
+    modalTitle.textContent = "3日以内一覧";
+  }
+
+  else {
+
+    list = foods.filter(
+      food => getDays(food.deadline) > 3
+    );
+
+    modalTitle.textContent = "安全一覧";
+  }
+
+  modalFoods.innerHTML =
+    list.map(food => {
+
+      const days =
+        getDays(food.deadline);
+
+      let status = `あと${days}日`;
+
+      if (days < 0) {
+        status = "💀期限切れ";
+      }
+
+      else if (days <= 3) {
+        status = `⚠️あと${days}日`;
+      }
+
+      return `
+        <div class="modal-food">
+          <strong>${food.name}</strong>
+          <span>${food.amount}個</span>
+          <span>${food.deadline}</span>
+          <span>${status}</span>
+        </div>
+      `;
+    }).join("");
+
+  modal.style.display = "flex";
+}
 /* =========================
    Dashboard
 ========================= */
@@ -2799,6 +2905,24 @@ document
     }
   );
 
+
+  document
+  .getElementById("expiredCard")
+  ?.addEventListener("click", () => {
+    showStatusFoods("expired");
+  });
+
+document
+  .getElementById("soonCard")
+  ?.addEventListener("click", () => {
+    showStatusFoods("soon");
+  });
+
+document
+  .getElementById("safeCard")
+  ?.addEventListener("click", () => {
+    showStatusFoods("safe");
+  });
 /* =========================
    初期化
 ========================= */
@@ -2899,4 +3023,4 @@ async function initNotification() {
 
 }
 
-initNotification();
+// initNotification();
